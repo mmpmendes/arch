@@ -64,6 +64,11 @@ mount_filesystems() {
     local swap_parition="$1"2;
     local root_partion="$1"3;
 
+    mount "$root_partion" /mnt
+    btrfs subvolume create /mnt/@
+    btrfs subvolume create /mnt/@home
+    umount /mnt
+
     mount -o subvol=@ "$root_partion" /mnt
     mkdir -p /mnt/home
     mount -o subvol=@home "$root_partion" /mnt/home
@@ -71,7 +76,6 @@ mount_filesystems() {
     mount "$boot_partion" /mnt/boot
     swapon "$swap_parition"
 }
-
 
 set -ex
 
