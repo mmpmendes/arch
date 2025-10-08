@@ -31,6 +31,15 @@ setup() {
     cp $0 /mnt/setup.sh
     arch-chroot /mnt ./setup.sh chroot
 
+    if [ -f /mnt/setup.sh ]
+    then
+        echo 'ERROR: Something failed inside the chroot, not unmounting filesystems so you can investigate.'
+        echo 'Make sure you unmount everything before you try to run this script again.'
+    else
+        echo 'Unmounting filesystems'
+        echo 'Done! Reboot system.'
+    fi
+
     reboot
 }
 
