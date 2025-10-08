@@ -55,7 +55,7 @@ format_filesystems() {
     local root_partion="$1"3;
 
     mkfs.fat -F 32 -n boot "$boot_partion"
-    mkfs.btrfs -n root "$root_partion"
+    mkfs.btrfs -L root "$root_partion"
     mkswap "$swap_parition"
 }
 
