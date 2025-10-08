@@ -35,7 +35,7 @@ setup() {
     echo "Listing available disks..."
     lsblk
 
-    sleep 10
+    sleep 5
 
     echo 'Installing base system'
     install_base
@@ -58,6 +58,56 @@ setup() {
     fi
 }
 
+configure() {
+    local boot_partition="$1"1;
+    local swap_partition="$1"2;
+    local root_partition="$1"3;
+
+    echo 'Installing additional packages'
+    install_packages
+
+    echo 'Setting timezone'
+    set_timezone "$TIMEZONE"
+
+    echo 'Setting locale'
+    set_locale
+
+    echo 'Setting console keymap'
+    set_keymap
+
+    echo 'Setting hostname'
+    set_hostname "$HOSTNAME"
+
+    echo 'Configuring sudo'
+    set_sudoers
+
+    if [ -z "$ROOT_PASSWORD" ]
+    then
+        echo 'Enter the root password:'
+        stty -echo
+        read ROOT_PASSWORD
+        stty echo
+    fi
+    echo 'Setting root password'
+    set_root_password "$ROOT_PASSWORD"
+
+    if [ -z "$USER_PASSWORD" ]
+    then
+        echo "Enter the password for user $USER_NAME"
+        stty -echo
+        read USER_PASSWORD
+        stty echo
+    fi
+    echo 'Creating initial user'
+    create_user "$USER_NAME" "$USER_PASSWORD"
+
+    enable_network
+
+    install_grub
+
+    rm /setup.sh
+}
+
 partition_drive() {
     local drive="$1";
 
@@ -70,35 +120,44 @@ partition_drive() {
 }
 
 format_filesystems() {
-    local boot_partion="$1"1;
-    local swap_parition="$1"2;
-    local root_partion="$1"3;
+    local boot_partition="$1"1;
+    local swap_partition="$1"2;
+    local root_partition="$1"3;
 
-    mkfs.fat -F 32 -n boot "$boot_partion"
-    mkfs.btrfs -L root "$root_partion"
-    mkswap "$swap_parition"
+    mkfs.fat -F 32 -n boot "$boot_partition"
+    mkfs.btrfs -L root "$root_partition"
+    mkswap "$swap_partition"
 }
 
 mount_filesystems() {
-    local boot_partion="$1"1;
-    local swap_parition="$1"2;
-    local root_partion="$1"3;
+    local boot_partition="$1"1;
+    local swap_partition="$1"2;
+    local root_partition="$1"3;
 
-    mount "$root_partion" /mnt
+    mount "$root_partition" /mnt
     btrfs subvolume create /mnt/@
     btrfs subvolume create /mnt/@home
     umount /mnt
 
-    mount -o subvol=@ "$root_partion" /mnt
+    mount -o subvol=@ "$root_partition" /mnt
     mkdir -p /mnt/home
-    mount -o subvol=@home "$root_partion" /mnt/home
+    mount -o subvol=@home "$root_partition" /mnt/home
     mkdir /mnt/boot
-    mount "$boot_partion" /mnt/boot
-    swapon "$swap_parition"
+    mount "$boot_partition" /mnt/boot
+    swapon "$swap_partition"
 }
 
 install_base() {
-    pacstrap -K /mnt base linux linux-firmware grub efibootmgr nano networkmanager sudo
+    pacstrap -K /mnt base linux linux-firmware
+}
+
+install_packages() {
+    local packages=''
+
+    # General utilities/libraries
+    packages+='grub efibootmgr nano networkmanager sudo'
+
+    pacman -Sy --noconfirm $packages
 }
 
 set_fstab() {
@@ -116,6 +175,77 @@ unmount_filesystems() {
     umount /mnt
     swapoff "$swap_partition"
 }
+
+set_timezone() {
+    local timezone="$1"; shift
+
+    ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
+    # Now sync the system time to the hardware clock
+    hwclock --systohc
+}
+
+set_locale() {
+    echo 'LANG="pt_PT.UTF-8"' >> /etc/locale.conf
+    echo 'LC_MESSAGES="en_US.UTF-8"' >> /etc/locale.conf
+    locale-gen
+}
+
+set_keymap() {
+    echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+}
+
+set_hostname() {
+    local hostname="$1"; shift
+
+    echo "$hostname" > /etc/hostname
+}
+
+set_sudoers() {
+    # Check if /etc/sudoers exists
+    if [ ! -f /etc/sudoers ]; then
+        echo "ERROR: /etc/sudoers does not exist."
+        exit 1
+    fi
+
+    # Check if the line exists (commented or uncommented)
+    if grep -q "^#\s*%wheel\s*ALL=(ALL)\s*ALL" /etc/sudoers; then
+        # Uncomment the %wheel ALL=(ALL) ALL line
+        sed -i 's/^#\s*\(%wheel\s*ALL=(ALL)\s*ALL\)/\1/' /etc/sudoers
+        echo "Uncommented %wheel ALL=(ALL) ALL in /etc/sudoers"
+    elif grep -q "^%wheel\s*ALL=(ALL)\s*ALL" /etc/sudoers; then
+        echo "Line %wheel ALL=(ALL) ALL is already uncommented"
+    else
+        echo "ERROR: %wheel ALL=(ALL) ALL line not found in /etc/sudoers"
+        exit 1
+    fi
+
+    # Ensure correct permissions
+    chmod 440 /etc/sudoers
+}
+
+set_root_password() {
+    local password="$1"; shift
+
+    echo -en "$password\n$password" | passwd
+}
+
+create_user() {
+    local name="$1"; shift
+    local password="$1"; shift
+    
+    useradd -m -G wheel -s /bin/bash "$name"
+    echo -en "$password\n$password" | passwd "$name"
+}
+
+enable_network() {
+    systemctl enable NetworkManager
+}
+
+install_grub(){
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+    grub-mkconfig -o /boot/grub/grub.cfg
+}
+
 
 set -ex
 
