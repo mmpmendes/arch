@@ -98,8 +98,6 @@ mount_filesystems() {
 }
 
 install_base() {
-    echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
-
     pacstrap -K /mnt base linux linux-firmware grub efibootmgr nano networkmanager sudo
 }
 
