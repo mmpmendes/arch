@@ -1,86 +1,56 @@
 #!/bin/bash
 
-# Drive to install to.
+#config variables
 DRIVE='/dev/sda'
-
-# Hostname of the installed machine.
 HOSTNAME='omega'
-
-# Root password (leave blank to be prompted).
 ROOT_PASSWORD=''
-
-# Main user to create (by default, added to wheel group, and others).
 USER_NAME='ishmael'
-
-# The main user's password (leave blank to be prompted).
 USER_PASSWORD=''
-
-# System timezone.
 TIMEZONE='Europe/Lisbon'
-
 KEYMAP='pt-latin9'
 
 setup() {
     local drive="$DRIVE"
 
-    echo 'Creating partitions'
+    echo '##### Creating partitions #####'
     partition_drive "$drive"
 
-    echo 'Formatting filesystems'
+    echo '##### Formatting filesystems #####'
     format_filesystems "$drive"
 
-    echo 'Mounting filesystems'
+    echo '##### Mounting filesystems #####'
     mount_filesystems "$drive"
 
-    echo "Listing available disks..."
-    lsblk
-
-    sleep 5
-
-    echo 'Installing base system'
+    echo '##### Installing base system #####'
     install_base
 
-    echo "Generating fstab..."
+    echo "##### Generating fstab #####"
     set_fstab
 
-    echo 'Chrooting into installed system to continue setup...'
+    echo '##### Chrooting into installed system #####'
     cp $0 /mnt/setup.sh
     arch-chroot /mnt ./setup.sh chroot
-
-    if [ -f /mnt/setup.sh ]
-    then
-        echo 'ERROR: Something failed inside the chroot, not unmounting filesystems so you can investigate.'
-        echo 'Make sure you unmount everything before you try to run this script again.'
-    else
-        echo 'Unmounting filesystems'
-        unmount_filesystems "$drive"
-        echo 'Done! Reboot system.'
-    fi
 
     reboot
 }
 
 configure() {
-    local boot_partition="$1"1;
-    local swap_partition="$1"2;
-    local root_partition="$1"3;
-
-    echo 'Installing additional packages'
+    echo '##### Installing additional packages #####'
     install_packages
 
-    echo 'Setting timezone'
+    echo '##### Setting timezone #####'
     set_timezone "$TIMEZONE"
 
-    echo 'Setting locale'
+    echo '##### Setting locale #####'
     set_locale
 
-    echo 'Setting console keymap'
+    echo '##### Setting console keymap #####'
     set_keymap
 
-    echo 'Setting hostname'
+    echo '##### Setting hostname #####'
     set_hostname "$HOSTNAME"
 
-    echo 'Configuring sudo'
+    echo '##### Configuring sudoers #####'
     set_sudoers
 
     if [ -z "$ROOT_PASSWORD" ]
@@ -90,7 +60,7 @@ configure() {
         read ROOT_PASSWORD
         stty echo
     fi
-    echo 'Setting root password'
+    echo '##### Setting root password #####'
     set_root_password "$ROOT_PASSWORD"
 
     if [ -z "$USER_PASSWORD" ]
@@ -100,11 +70,13 @@ configure() {
         read USER_PASSWORD
         stty echo
     fi
-    echo 'Creating initial user'
+    echo '##### Creating initial user #####'
     create_user "$USER_NAME" "$USER_PASSWORD"
 
+    echo '##### Enabling network manager #####'
     enable_network
 
+    echo '##### Installing bootloader #####'
     install_grub
 
     rm /setup.sh
@@ -128,7 +100,7 @@ format_filesystems() {
 
     mkfs.fat -F 32 -n boot "$boot_partition"
     mkfs.btrfs -L root "$root_partition"
-    mkswap "$swap_partition"
+    mkswap -L swap "$swap_partition"
 }
 
 mount_filesystems() {
@@ -155,38 +127,26 @@ install_base() {
 
 install_packages() {
     local packages=''
-
-    # General utilities/libraries
+    #General utilities/libraries
     packages+='grub efibootmgr nano networkmanager sudo'
-
     pacman -Sy --noconfirm $packages
 }
 
 set_fstab() {
     genfstab -U /mnt >> /mnt/etc/fstab
-
-    echo "Displaying fstab for verification..."
-    cat /mnt/etc/fstab
-    read -p "Please verify the fstab output. Press Enter to continue..."
-}
-
-unmount_filesystems() {
-    local swap_partition="$1"2;
-
-    umount /mnt/boot
-    umount /mnt
-    swapoff "$swap_partition"
 }
 
 set_timezone() {
     local timezone="$1"; shift
 
     ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
-    # Now sync the system time to the hardware clock
     hwclock --systohc
 }
 
 set_locale() {
+    sed -i 's/#en_US\.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/#pt_PT\.UTF-8 UTF-8/pt_PT.UTF-8 UTF-8/' /etc/locale.gen
+
     echo 'LANG="pt_PT.UTF-8"' >> /etc/locale.conf
     echo 'LC_MESSAGES="en_US.UTF-8"' >> /etc/locale.conf
     locale-gen
@@ -198,7 +158,6 @@ set_keymap() {
 
 set_hostname() {
     local hostname="$1"; shift
-
     echo "$hostname" > /etc/hostname
 }
 
@@ -229,8 +188,6 @@ install_grub(){
     grub-mkconfig -o /boot/grub/grub.cfg
 }
 
-
-#set -ex -- for debug
 set -e
 
 if [ "$1" == "chroot" ]
