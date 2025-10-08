@@ -208,7 +208,7 @@ set_sudoers() {
     fi
 
     # Check if the line exists (commented or uncommented)
-    if grep -q "^#\s*%wheel\s*ALL=(ALL)\s*ALL" /etc/sudoers; then
+    if grep -q "^#\s*%wheel\s*ALL=\(ALL:ALL\)\s*ALL" /etc/sudoers; then
         # Uncomment the %wheel ALL=(ALL) ALL line
         sed -i 's/^#\s*\(%wheel\s*ALL=(ALL)\s*ALL\)/\1/' /etc/sudoers
         echo "Uncommented %wheel ALL=(ALL) ALL in /etc/sudoers"
