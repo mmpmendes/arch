@@ -36,6 +36,26 @@ setup() {
     lsblk
 
     sleep 10
+
+    echo 'Installing base system'
+    install_base
+
+    echo "Generating fstab..."
+    set_fstab
+
+    echo 'Chrooting into installed system to continue setup...'
+    cp $0 /mnt/setup.sh
+    arch-chroot /mnt ./setup.sh chroot
+
+    if [ -f /mnt/setup.sh ]
+    then
+        echo 'ERROR: Something failed inside the chroot, not unmounting filesystems so you can investigate.'
+        echo 'Make sure you unmount everything before you try to run this script again.'
+    else
+        echo 'Unmounting filesystems'
+        unmount_filesystems "$drive"
+        echo 'Done! Reboot system.'
+    fi
 }
 
 partition_drive() {
@@ -75,6 +95,28 @@ mount_filesystems() {
     mkdir /mnt/boot
     mount "$boot_partion" /mnt/boot
     swapon "$swap_parition"
+}
+
+install_base() {
+    echo 'Server = http://mirrors.kernel.org/archlinux/$repo/os/$arch' >> /etc/pacman.d/mirrorlist
+
+    pacstrap -K /mnt base linux linux-firmware grub efibootmgr nano networkmanager sudo
+}
+
+set_fstab() {
+    genfstab -U /mnt >> /mnt/etc/fstab
+
+    echo "Displaying fstab for verification..."
+    cat /mnt/etc/fstab
+    read -p "Please verify the fstab output. Press Enter to continue..."
+}
+
+unmount_filesystems() {
+    local swap_partition="$1"2;
+
+    umount /mnt/boot
+    umount /mnt
+    swapoff "$swap_partition"
 }
 
 set -ex
