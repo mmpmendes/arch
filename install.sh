@@ -56,6 +56,8 @@ setup() {
         unmount_filesystems "$drive"
         echo 'Done! Reboot system.'
     fi
+
+    reboot
 }
 
 configure() {
@@ -228,7 +230,8 @@ install_grub(){
 }
 
 
-set -ex
+#set -ex -- for debug
+set -e
 
 if [ "$1" == "chroot" ]
 then
