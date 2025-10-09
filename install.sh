@@ -108,7 +108,7 @@ format_filesystems() {
     local root_partition="$1"p3;
 
     mkfs.fat -F 32 -n boot "$boot_partition"
-    mkfs.btrfs -L root "$root_partition"
+    mkfs.btrfs -f -L root "$root_partition"
     mkswap -L swap "$swap_partition"
 }
 
