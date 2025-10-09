@@ -177,7 +177,7 @@ set_sudoers() {
 set_root_password() {
     local password="$1"; shift
 
-    echo -en "$password\n$password" | passwd
+    echo -en "$password" | passwd
 }
 
 create_user() {
@@ -185,7 +185,7 @@ create_user() {
     local password="$1"; shift
     
     useradd -m -G wheel -s /bin/bash "$name"
-    echo -en "$password\n$password" | passwd "$name"
+    echo -en "$password" | passwd "$name"
 }
 
 enable_network() {
