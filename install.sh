@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #config variables
-DRIVE='/dev/sda'
+DRIVE='/dev/nvme0n1'
 HOSTNAME='omega'
 ROOT_PASSWORD=''
 USER_NAME='ishmael'
