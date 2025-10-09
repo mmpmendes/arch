@@ -103,9 +103,9 @@ partition_drive() {
 }
 
 format_filesystems() {
-    local boot_partition="$1"1;
-    local swap_partition="$1"2;
-    local root_partition="$1"3;
+    local boot_partition="$1"p1;
+    local swap_partition="$1"p2;
+    local root_partition="$1"p3;
 
     mkfs.fat -F 32 -n boot "$boot_partition"
     mkfs.btrfs -L root "$root_partition"
@@ -113,9 +113,9 @@ format_filesystems() {
 }
 
 mount_filesystems() {
-    local boot_partition="$1"1;
-    local swap_partition="$1"2;
-    local root_partition="$1"3;
+    local boot_partition="$1"p1;
+    local swap_partition="$1"p2;
+    local root_partition="$1"p3;
 
     mount "$root_partition" /mnt
     btrfs subvolume create /mnt/@
