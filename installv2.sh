@@ -18,6 +18,8 @@ setup() {
     # Start the drive selection process
     select_drive
 
+    echo "Outside function: Selected option is $selected_option"
+
     echo '##### Creating partitions #####'
     partition_drive "$selected_drive"
 
@@ -207,32 +209,21 @@ install_grub(){
 ###################### UTILS ##########################
 #######################################################
 
-# Function to get list of available drives
-get_drives() {
-    # Use lsblk to list block devices, filter for disks, and extract device paths
-    lsblk -d -o NAME,SIZE,TYPE | grep disk | awk '{print "/dev/" $1 " (" $2 ")"}'
-}
-
-# Function to display menu and handle arrow key navigation
 select_drive() {
     PS3='Please enter your choice: '
     options=("Option 1" "Option 2" "Option 3" "Quit")
-    select opt in "${options[@]}"
-    do
+    select opt in "${options[@]}"; do
         case $opt in
-            "Option 1")
-                echo "you chose choice 1"
-                ;;
-            "Option 2")
-                echo "you chose choice 2"
-                ;;
-            "Option 3")
-                echo "you chose choice $REPLY which is $opt"
+            "Option 1"|"Option 2"|"Option 3")
+                selected_option="$opt"
+                echo "You chose: $selected_option"
+                return 0
                 ;;
             "Quit")
-                break
+                echo "Exiting." >&2
+                return 0
                 ;;
-            *) echo "invalid option $REPLY";;
+            *) echo "Invalid option $REPLY" >&2; continue;;
         esac
     done
 }
