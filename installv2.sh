@@ -1,0 +1,281 @@
+#!/bin/bash
+
+#script will not work on traditional SATA/SCSI Drives due to partition name suffix difference (p needs to be remove from the partition name
+#TODO: identify type of drive and adapt accordingly
+
+#config variables
+DRIVE='/dev/nvme0n1'
+HOSTNAME='omega'
+ROOT_PASSWORD=''
+USER_NAME='ishmael'
+USER_PASSWORD=''
+TIMEZONE='Europe/Lisbon'
+KEYMAP='pt-latin9'
+
+setup() {
+    #local drive="$DRIVE"
+
+    # Start the drive selection process
+    select_drive
+
+    echo '##### Creating partitions #####'
+    partition_drive "$selected_drive"
+
+    echo '##### Formatting filesystems #####'
+    format_filesystems "$selected_drive"
+
+    echo '##### Mounting filesystems #####'
+    mount_filesystems "$selected_drive"
+
+    echo '##### Installing base system #####'
+    install_base
+
+    echo "##### Generating fstab #####"
+    set_fstab
+
+    echo '##### Chrooting into installed system #####'
+    cp $0 /mnt/setup.sh
+    arch-chroot /mnt ./setup.sh chroot
+
+    if [ -f /mnt/setup.sh ]
+    then
+        echo 'ERROR: Something failed inside the chroot, not unmounting filesystems so you can investigate.'
+        echo 'Make sure you unmount everything before you try to run this script again.'
+    else
+        echo 'Unmounting filesystems'
+        echo 'Done! Reboot system.'
+    fi
+
+    reboot
+}
+
+configure() {
+    echo '##### Installing additional packages #####'
+    install_packages
+
+    echo '##### Setting timezone #####'
+    set_timezone "$TIMEZONE"
+
+    echo '##### Setting locale #####'
+    set_locale
+
+    echo '##### Setting console keymap #####'
+    set_keymap
+
+    echo '##### Setting hostname #####'
+    set_hostname "$HOSTNAME"
+
+    echo '##### Configuring sudoers #####'
+    set_sudoers
+
+    if [ -z "$ROOT_PASSWORD" ]
+    then
+        echo 'Enter the root password:'
+        stty -echo
+        read ROOT_PASSWORD
+        stty echo
+    fi
+    echo '##### Setting root password #####'
+    set_root_password "$ROOT_PASSWORD"
+
+    if [ -z "$USER_PASSWORD" ]
+    then
+        echo "Enter the password for user $USER_NAME"
+        stty -echo
+        read USER_PASSWORD
+        stty echo
+    fi
+    echo '##### Creating initial user #####'
+    create_user "$USER_NAME" "$USER_PASSWORD"
+
+    echo '##### Enabling network manager #####'
+    enable_network
+
+    echo '##### Installing bootloader #####'
+    install_grub
+
+    rm /setup.sh
+}
+
+partition_drive() {
+    local drive="$1";
+
+    parted -s "$drive" \
+        mklabel gpt \
+        mkpart primary fat32 1MiB 513MiB \
+        set 1 boot on \
+        mkpart primary linux-swap 513MiB 4609MiB \
+        mkpart primary btrfs 4609MiB 100%
+}
+
+format_filesystems() {
+    local boot_partition="$1"p1;
+    local swap_partition="$1"p2;
+    local root_partition="$1"p3;
+
+    mkfs.fat -F 32 -n boot "$boot_partition"
+    mkfs.btrfs -f -L root "$root_partition"
+    mkswap -L swap "$swap_partition"
+}
+
+mount_filesystems() {
+    local boot_partition="$1"p1;
+    local swap_partition="$1"p2;
+    local root_partition="$1"p3;
+
+    mount "$root_partition" /mnt
+    btrfs subvolume create /mnt/@
+    btrfs subvolume create /mnt/@home
+    umount /mnt
+
+    mount -o subvol=@ "$root_partition" /mnt
+    mkdir -p /mnt/home
+    mount -o subvol=@home "$root_partition" /mnt/home
+    mkdir /mnt/boot
+    mount "$boot_partition" /mnt/boot
+    swapon "$swap_partition"
+}
+
+install_base() {
+    pacstrap -K /mnt base linux linux-firmware
+}
+
+install_packages() {
+    local packages=''
+    #General utilities/libraries
+    packages+='grub efibootmgr nano networkmanager sudo'
+    pacman -Sy --noconfirm $packages
+}
+
+set_fstab() {
+    genfstab -U /mnt >> /mnt/etc/fstab
+}
+
+set_timezone() {
+    local timezone="$1"; shift
+
+    ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
+    hwclock --systohc
+}
+
+set_locale() {
+    sed -i 's/#en_US\.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/#pt_PT\.UTF-8 UTF-8/pt_PT.UTF-8 UTF-8/' /etc/locale.gen
+
+    echo 'LANG="pt_PT.UTF-8"' >> /etc/locale.conf
+    echo 'LC_MESSAGES="en_US.UTF-8"' >> /etc/locale.conf
+    locale-gen
+}
+
+set_keymap() {
+    echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
+}
+
+set_hostname() {
+    local hostname="$1"; shift
+    echo "$hostname" > /etc/hostname
+}
+
+set_sudoers() {
+    sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+}
+
+set_root_password() {
+    local password="$1"; shift
+
+    echo -en "$password\n$password" | passwd
+}
+
+create_user() {
+    local name="$1"; shift
+    local password="$1"; shift
+    
+    useradd -m -G wheel -s /bin/bash "$name"
+    echo -en "$password\n$password" | passwd "$name"
+}
+
+enable_network() {
+    systemctl enable NetworkManager
+}
+
+install_grub(){
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+    grub-mkconfig -o /boot/grub/grub.cfg
+}
+
+set -e
+
+if [ "$1" == "chroot" ]
+then
+    configure
+else
+    setup
+fi
+
+
+#######################################################
+###################### UTILS ##########################
+#######################################################
+
+# Function to get list of available drives
+get_drives() {
+    # Use lsblk to list block devices, filter for disks, and extract device paths
+    lsblk -d -o NAME,SIZE,TYPE | grep disk | awk '{print "/dev/" $1 " (" $2 ")"}'
+}
+
+# Function to display menu and handle arrow key navigation
+select_drive() {
+    local drives=($(get_drives))
+    local num_drives=${#drives[@]}
+    local selected=0
+    local key
+
+    # Terminal settings
+    tput init
+    trap 'tput sgr0; tput cnorm; clear' EXIT  # Reset terminal on exit
+
+    while true; do
+        clear
+        echo "Select a drive to partition (use ↑/↓ arrows, Enter to confirm, q to quit):"
+        echo
+
+        # Display drive list with selection highlight
+        for i in "${!drives[@]}"; do
+            if [ $i -eq $selected ]; then
+                tput setaf 2  # Green highlight for selected item
+                echo "> ${drives[$i]}"
+                tput sgr0     # Reset color
+            else
+                echo "  ${drives[$i]}"
+            fi
+        done
+
+        # Read a single character without requiring Enter
+        read -rsn1 key
+
+        # Handle arrow keys (escape sequences)
+        if [ "$key" = $'\x1b' ]; then
+            read -rsn2 key
+            case "$key" in
+                '[A') # Up arrow
+                    ((selected--))
+                    if [ $selected -lt 0 ]; then
+                        selected=$((num_drives - 1))
+                    fi
+                    ;;
+                '[B') # Down arrow
+                    ((selected++))
+                    if [ $selected -ge $num_drives ]; then
+                        selected=0
+                    fi
+                    ;;
+            esac
+        elif [ "$key" = "" ]; then
+            # Enter key pressed, select the drive
+            selected_drive=$(echo "${drives[$selected]}" | awk '{print $1}')
+            echo
+            echo "Selected drive: $selected_drive"
+            sleep 5
+            return 0
+    done
+}
