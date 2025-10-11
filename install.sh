@@ -31,14 +31,7 @@ setup() {
     cp $0 /mnt/setup.sh
     arch-chroot /mnt ./setup.sh chroot
 
-    if [ -f /mnt/setup.sh ]
-    then
-        echo 'ERROR: Something failed inside the chroot, not unmounting filesystems so you can investigate.'
-        echo 'Make sure you unmount everything before you try to run this script again.'
-    else
-        echo 'Unmounting filesystems'
-        echo 'Done! Reboot system.'
-    fi
+
 
     reboot
 }
@@ -62,21 +55,19 @@ configure() {
     echo '##### Configuring sudoers #####'
     set_sudoers
 
-    if [ -z "$ROOT_PASSWORD" ]
-    then
+    if [ -z "$ROOT_PASSWORD" ]; then
         echo 'Enter the root password:'
         stty -echo
-        read ROOT_PASSWORD
+        read -p '' ROOT_PASSWORD
         stty echo
     fi
     echo '##### Setting root password #####'
     set_root_password "$ROOT_PASSWORD"
 
-    if [ -z "$USER_PASSWORD" ]
-    then
+    if [ -z "$USER_PASSWORD" ]; then
         echo "Enter the password for user $USER_NAME"
         stty -echo
-        read USER_PASSWORD
+        read -p '' USER_PASSWORD
         stty echo
     fi
     echo '##### Creating initial user #####'
