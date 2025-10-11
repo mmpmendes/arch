@@ -22,3 +22,7 @@ sudo systemctl enable sddm
 sudo systemctl start sddm
 
 echo "Installation and service setup complete!"
+
+### manual stuff ###
+# use transfuse to restore kde user settings
+# https://gitlab.com/cscs/transfuse
