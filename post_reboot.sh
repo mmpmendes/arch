@@ -15,7 +15,7 @@ sudo pacman -S amd-ucode
 sudo pacman -S mesa vulkan-radeon libva-mesa-driver mesa-vdpau radeontop
 
 # Install extra packages
-sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin
+sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin git
 
 # Enable and start SDDM service
 sudo systemctl enable sddm
