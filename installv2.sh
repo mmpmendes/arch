@@ -215,61 +215,27 @@ get_drives() {
 
 # Function to display menu and handle arrow key navigation
 select_drive() {
-    local drives=($(get_drives))
-    local num_drives=${#drives[@]}
-    local selected=0
-    local key
-
-    # Terminal settings
-    tput init
-    trap 'tput sgr0; tput cnorm; clear' EXIT  # Reset terminal on exit
-
-    while true; do
-        clear
-        echo "Select a drive to partition (use ↑/↓ arrows, Enter to confirm, q to quit):"
-        echo
-
-        # Display drive list with selection highlight
-        for i in "${!drives[@]}"; do
-            if [ $i -eq $selected ]; then
-                tput setaf 2  # Green highlight for selected item
-                echo "> ${drives[$i]}"
-                tput sgr0     # Reset color
-            else
-                echo "  ${drives[$i]}"
-            fi
-        done
-
-        # Read a single character without requiring Enter
-        read -rsn1 key
-
-        # Handle arrow keys (escape sequences)
-        if [ "$key" = $'\x1b' ]; then
-            read -rsn2 key
-            case "$key" in
-                '[A') # Up arrow
-                    ((selected--))
-                    if [ $selected -lt 0 ]; then
-                        selected=$((num_drives - 1))
-                    fi
-                    ;;
-                '[B') # Down arrow
-                    ((selected++))
-                    if [ $selected -ge $num_drives ]; then
-                        selected=0
-                    fi
-                    ;;
-            esac
-        elif [ "$key" = "" ]; then
-            # Enter key pressed, select the drive
-            selected_drive=$(echo "${drives[$selected]}" | awk '{print $1}')
-            echo
-            echo "Selected drive: $selected_drive"
-            sleep 5
-            return 0
+    PS3='Please enter your choice: '
+    options=("Option 1" "Option 2" "Option 3" "Quit")
+    select opt in "${options[@]}"
+    do
+        case $opt in
+            "Option 1")
+                echo "you chose choice 1"
+                ;;
+            "Option 2")
+                echo "you chose choice 2"
+                ;;
+            "Option 3")
+                echo "you chose choice $REPLY which is $opt"
+                ;;
+            "Quit")
+                break
+                ;;
+            *) echo "invalid option $REPLY";;
+        esac
     done
 }
-
 
 set -e
 
