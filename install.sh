@@ -128,7 +128,7 @@ install_base() {
 install_packages() {
     local packages=''
     #General utilities/libraries
-    packages+='grub efibootmgr nano networkmanager sudo'
+    packages+='grub efibootmgr btrfs-progs nano networkmanager sudo'
     pacman -Sy --noconfirm $packages
 }
 
