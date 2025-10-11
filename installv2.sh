@@ -203,16 +203,6 @@ install_grub(){
     grub-mkconfig -o /boot/grub/grub.cfg
 }
 
-set -e
-
-if [ "$1" == "chroot" ]
-then
-    configure
-else
-    setup
-fi
-
-
 #######################################################
 ###################### UTILS ##########################
 #######################################################
@@ -279,3 +269,13 @@ select_drive() {
             return 0
     done
 }
+
+
+set -e
+
+if [ "$1" == "chroot" ]
+then
+    configure
+else
+    setup
+fi
