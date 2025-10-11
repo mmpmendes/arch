@@ -4,7 +4,7 @@
 sudo pacman -Syu
 
 # Install minimal essentials
-sudo pacman -S sddm plasma-desktop bluedevil kscreen konsole dolphin kdegraphics-thumbnailers ffmpegthumbs plasma-pa gwenview plasma-systemmonitor 
+sudo pacman -S sddm plasma-desktop bluedevil kscreen konsole kate dolphin kdegraphics-thumbnailers ffmpegthumbs plasma-pa gwenview plasma-systemmonitor 
 
 # Enable and start Bluetooth service
 sudo systemctl start bluetooth.service
