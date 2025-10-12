@@ -41,3 +41,6 @@ sleep 5
 ### manual stuff ###
 # use transfuse to restore kde user settings
 # https://gitlab.com/cscs/transfuse
+
+## login screen theme
+## https://github.com/Keyitdev/sddm-astronaut-theme?tab=readme-ov-file
