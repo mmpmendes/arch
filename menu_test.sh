@@ -1,3 +1,5 @@
+#!/bin/bash
+
 select_drive() {
   # Ensure stdin is bound to the terminal
   exec </dev/tty
