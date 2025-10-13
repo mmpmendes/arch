@@ -1,4 +1,7 @@
 select_drive() {
+  # Ensure stdin is bound to the terminal
+  exec </dev/tty
+
   # Initialize empty variable to store drive paths
   DRIVE_PATHS=""
   # Get list of all block devices using lsblk, exclude header and loop devices
@@ -49,7 +52,7 @@ select_drive() {
   # Function to handle key input
   read_arrow() {
     local key
-    read -rsn1 key # Read one character silently
+    read -rsn1 key # Read one character silently from /dev/tty (already set by exec)
     if [[ $key == $'\x1b' ]]; then
       read -rsn2 -t 0.1 key 2>/dev/null # Read two more characters with timeout
       case $key in
