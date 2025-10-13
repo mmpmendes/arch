@@ -210,9 +210,6 @@ configure() {
 }
 
 partition_drive() {
-    echo "FFS"
-    sleep 500
-
     local drive="$1"
 
     parted -s "$drive" \
