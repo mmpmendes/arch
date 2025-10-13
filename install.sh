@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #config variables
+DRIVE='/dev/sda'
 HOSTNAME='omega'
 ROOT_PASSWORD=''
 USER_NAME='ishmael'
@@ -8,134 +9,9 @@ USER_PASSWORD=''
 TIMEZONE='Europe/Lisbon'
 KEYMAP='pt-latin9'
 
-##########################################################
-###################### DRIVE SELECTION ######################
-##########################################################
-
-select_drive() {
-  # Initialize empty variable to store drive paths
-  DRIVE_PATHS=""
-  # Get list of all block devices using lsblk, exclude header and loop devices
-  DRIVES=$(lsblk -d -o PATH | grep -v '^PATH' | grep -v loop)
-
-  # Check if any drives were found
-  if [ -z "$DRIVES" ]; then
-    echo "No drives found. Exiting."
-    exit 1
-  fi
-
-  # Loop through each drive and append to DRIVE_PATHS
-  while IFS= read -r drive; do
-    DRIVE_PATHS="$DRIVE_PATHS $drive"
-  done <<< "$DRIVES"
-
-  # Remove leading/trailing whitespace
-  DRIVE_PATHS=$(echo "$DRIVE_PATHS" | xargs)
-
-  # Array of menu options
-  options=($DRIVE_PATHS)
-  # Current selected index
-  selected=0
-  # Total number of options
-  total_options=${#options[@]}
-
-  # Function to draw the menu
-  draw_menu() {
-    clear
-    echo "###########################################"
-    echo "#        Select installation drive        #"
-    echo "###########################################"
-    echo "#"
-    for ((i=0; i<total_options; i++)); do
-      if [ $i -eq $selected ]; then
-        # Highlight selected option with > and background color
-        echo -e "# > \033[7m${options[$i]}\033[0m "
-      else
-        echo "#   ${options[$i]}   "
-      fi
-    done
-    echo "#"
-    echo "###########################################"
-    echo "#   Use ↑↓ to navigate, Enter to select   #"
-    echo "###########################################"
-  }
-
-  # Check if running in a terminal
-  if [ -t 0 ]; then
-    # Save terminal settings and set to raw mode if terminal is available
-    stty_orig=$(stty -g 2>/dev/null) || stty_orig=""
-    if [ -n "$stty_orig" ]; then
-      stty -echo raw 2>/dev/null || true
-    fi
-  fi
-
-  # Drive selection loop
-  while true; do
-    draw_menu
-    # Read a single character
-    read -rsn1 key
-    if [[ $key == $'\x1b' ]]; then
-      # Read the next two characters for arrow keys
-      read -rsn2 -t 0.5 key 2>/dev/null || key=""
-      case $key in
-        '[A') # Up arrow
-          ((selected--))
-          if [ $selected -lt 0 ]; then
-            selected=$((total_options-1))
-          fi
-          ;;
-        '[B') # Down arrow
-          ((selected++))
-          if [ $selected -ge $total_options ]; then
-            selected=0
-          fi
-          ;;
-        *) # Ignore other escape sequences
-          continue
-          ;;
-      esac
-    elif [[ $key == "" ]]; then
-      # Enter key pressed
-      # Restore terminal settings if they were saved
-      if [ -t 0 ] && [ -n "$stty_orig" ]; then
-        stty "$stty_orig" 2>/dev/null || true
-      fi
-      echo "Are you sure you want to use drive ${options[$selected]} to install Arch? ALL DATA WILL BE LOST!"
-      echo "Press Enter to continue, Esc or any other key to cancel..."
-      read -rsn1 confirm
-      if [ -z "$confirm" ]; then
-        # Enter was pressed, set DRIVE and proceed
-        DRIVE="${options[$selected]}"
-        # Validate drive
-        if [ ! -b "$DRIVE" ]; then
-          echo "Error: $DRIVE is not a valid block device."
-          exit 1
-        fi
-        echo "Selected drive: $DRIVE"
-        # Restore terminal settings before returning (if applicable)
-        if [ -t 0 ] && [ -n "$stty_orig" ]; then
-          stty "$stty_orig" 2>/dev/null || true
-        fi
-        return 0 # Proceed with installation
-      else
-        # Any other key, return to menu
-        if [ -t 0 ] && [ -n "$stty_orig" ]; then
-          stty -echo raw 2>/dev/null || true # Re-enable raw mode for menu
-        fi
-        continue
-      fi
-    fi
-    # Other keys redraw the menu
-  done
-}
-##########################################################
-################### END DRIVE SELECTION #####################
-##########################################################
 
 setup() {
 
-    echo '##### Drive selection #####'
-    select_drive
     local installation_drive="$DRIVE"
 
     echo '##### Creating partitions #####'
@@ -156,8 +32,6 @@ setup() {
     echo '##### Chrooting into installed system #####'
     cp $0 /mnt/setup.sh
     arch-chroot /mnt ./setup.sh chroot
-
-
 
     reboot
 }
@@ -209,6 +83,9 @@ configure() {
 }
 
 partition_drive() {
+    echo "FFS"
+    sleep 500
+
     local drive="$1"
 
     parted -s "$drive" \
