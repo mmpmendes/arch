@@ -60,9 +60,14 @@ select_drive() {
     echo "###########################################"
   }
 
-  # Save terminal settings and set to raw mode
-  stty_orig=$(stty -g)
-  stty -echo raw
+  # Check if running in a terminal
+  if [ -t 0 ]; then
+    # Save terminal settings and set to raw mode if terminal is available
+    stty_orig=$(stty -g 2>/dev/null) || stty_orig=""
+    if [ -n "$stty_orig" ]; then
+      stty -echo raw 2>/dev/null || true
+    fi
+  fi
 
   # Drive selection loop
   while true; do
@@ -71,7 +76,7 @@ select_drive() {
     read -rsn1 key
     if [[ $key == $'\x1b' ]]; then
       # Read the next two characters for arrow keys
-      read -rsn2 -t 0.5 key 2>/dev/null
+      read -rsn2 -t 0.5 key 2>/dev/null || key=""
       case $key in
         '[A') # Up arrow
           ((selected--))
@@ -91,8 +96,10 @@ select_drive() {
       esac
     elif [[ $key == "" ]]; then
       # Enter key pressed
-      # Restore terminal settings before confirmation
-      stty "$stty_orig"
+      # Restore terminal settings if they were saved
+      if [ -t 0 ] && [ -n "$stty_orig" ]; then
+        stty "$stty_orig" 2>/dev/null || true
+      fi
       echo "Are you sure you want to use drive ${options[$selected]} to install Arch? ALL DATA WILL BE LOST!"
       echo "Press Enter to continue, Esc or any other key to cancel..."
       read -rsn1 confirm
@@ -105,19 +112,22 @@ select_drive() {
           exit 1
         fi
         echo "Selected drive: $DRIVE"
-        # Restore terminal settings before returning
-        stty "$stty_orig"
+        # Restore terminal settings before returning (if applicable)
+        if [ -t 0 ] && [ -n "$stty_orig" ]; then
+          stty "$stty_orig" 2>/dev/null || true
+        fi
         return 0 # Proceed with installation
       else
         # Any other key, return to menu
-        stty -echo raw # Re-enable raw mode for menu
+        if [ -t 0 ] && [ -n "$stty_orig" ]; then
+          stty -echo raw 2>/dev/null || true # Re-enable raw mode for menu
+        fi
         continue
       fi
     fi
     # Other keys redraw the menu
   done
 }
-
 ##########################################################
 ################### END DRIVE SELECTION #####################
 ##########################################################
