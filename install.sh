@@ -318,7 +318,7 @@ install_grub(){
     grub-mkconfig -o /boot/grub/grub.cfg
 }
 
-set -e
+#set -e
 
 if [ "$1" == "chroot" ]
 then
