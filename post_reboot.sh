@@ -32,10 +32,10 @@ sudo sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
 sudo sed -i 's/GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=hidden/' /etc/default/grub
 
 # Update grub configuration
-grub-mkconfig -o /boot/grub/grub.cfg
+sudo grub-mkconfig -o /boot/grub/grub.cfg
 
 # Comment out all lines containing 'echo' in /boot/grub/grub.cfg
-sed -i '/echo/s/^/#/' /boot/grub/grub.cfg
+sudo sed -i '/echo/s/^/#/' /boot/grub/grub.cfg
 
 echo "GRUB configuration updated and all 'echo' lines in /boot/grub/grub.cfg commented out."
 
