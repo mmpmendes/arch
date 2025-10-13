@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#the secret sauce 
-exec </dev/tty  # Force input from the controlling terminal
-
 #config variables
 HOSTNAME='omega'
 ROOT_PASSWORD=''
