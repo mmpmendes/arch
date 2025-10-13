@@ -25,6 +25,10 @@ select_drive() {
   # Total number of options
   total_options=${#options[@]}
 
+  # Configure terminal settings for consistent input
+  stty -echo raw  # Disable echo and set raw mode
+  trap 'stty echo cooked; exit' INT TERM EXIT  # Restore terminal settings on exit
+
   # Function to draw the menu
   draw_menu() {
     clear
@@ -49,9 +53,9 @@ select_drive() {
   # Function to handle key input
   read_arrow() {
     local key
-    read -rsn1 key # Read one character silently
+    read -rsn1 key  # Read one character silently
     if [[ $key == $'\x1b' ]]; then
-      read -rsn2 -t 0.1 key 2>/dev/null # Read two more characters with timeout
+      read -rsn2 -t 0.5 key 2>/dev/null  # Increase timeout to 0.5 seconds
       case $key in
         '[A') # Up arrow
           ((selected--))
@@ -75,6 +79,8 @@ select_drive() {
       # Enter key
       return 0
     fi
+    # Debug: Log unexpected key (uncomment for debugging)
+    # echo "DEBUG: Received key: $(printf %q "$key")" >&2
     return 1 # Other keys return to menu
   }
 
@@ -98,6 +104,7 @@ select_drive() {
           exit 1
         fi
         echo "Selected drive: $DRIVE"
+        stty echo cooked  # Restore terminal settings
         return 0 # Proceed with installation
       elif [ "$confirm" == $'\x1b' ]; then
         # Escape was pressed, return to menu
