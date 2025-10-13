@@ -67,87 +67,68 @@ select_drive() {
   # Function to handle key input
   read_arrow() {
     local key
-    # Read one character silently, suppress errors
-    if ! read -rsn1 key; then
-      echo "Error reading key" >&2
-      return 1
-    fi
-    # Debugging: Print the key code (uncomment to debug)
-    # printf "Key: %s\n" "$(echo -n "$key" | od -An -tx1)" >&2
+    read -rsn1 key # Read one character silently from /dev/tty (already set by exec)
     if [[ $key == $'\x1b' ]]; then
-      # Read two more characters for escape sequences (arrow keys)
-      if read -rsn2 -t 0.2 key 2>/dev/null; then
-        # Debugging: Print escape sequence (uncomment to debug)
-        # printf "Escape sequence: %s\n" "$(echo -n "$key" | od -An -tx1)" >&2
-        case $key in
-          '[A') # Up arrow
-            ((selected--))
-            if [ $selected -lt 0 ]; then
-              selected=$((total_options-1))
-            fi
-            return 1
-            ;;
-          '[B') # Down arrow
-            ((selected++))
-            if [ $selected -ge $total_options ]; then
-              selected=0
-            fi
-            return 1
-            ;;
-          *) # Other escape sequences
-            return 1
-            ;;
-        esac
-      else
-        # Escape key alone or timeout
-        return 1
-      fi
+      read -rsn2 -t 0.1 key 2>/dev/null # Read two more characters with timeout
+      case $key in
+        '[A') # Up arrow
+          ((selected--))
+          if [ $selected -lt 0 ]; then
+            selected=$((total_options-1))
+          fi
+          return 1
+          ;;
+        '[B') # Down arrow
+          ((selected++))
+          if [ $selected -ge $total_options ]; then
+            selected=0
+          fi
+          return 1
+          ;;
+        *) # Escape key alone or other sequences
+          return 1
+          ;;
+      esac
     elif [[ $key == "" ]]; then
       # Enter key
       return 0
     fi
-    # Any other key
-    return 1
+    return 1 # Other keys return to menu
   }
 
   # Drive selection loop
   while true; do
     draw_menu
-    # Call read_arrow, ensure errors don’t terminate script
-    read_arrow || true
+    read_arrow
     key_status=$?
 
     if [ $key_status -eq 0 ]; then
       # Enter was pressed, handle selection
       echo "Are you sure you want to use drive ${options[$selected]} to install Arch? ALL DATA WILL BE LOST!"
       echo "Press Enter to continue, Esc or any other key to cancel..."
-      # Read confirmation, suppress errors
-      if read -rsn1 confirm; then
-        if [ -z "$confirm" ]; then
-          # Enter was pressed, set DRIVE and proceed
-          DRIVE="${options[$selected]}"
-          # Validate drive
-          if [ ! -b "$DRIVE" ]; then
-            echo "Error: $DRIVE is not a valid block device."
-            exit 1
-          fi
-          echo "Selected drive: $DRIVE"
-          return 0 # Proceed with installation
-        elif [ "$confirm" == $'\x1b' ]; then
-          # Escape was pressed, return to menu
-          continue
-        else
-          # Any other key, return to menu
-          continue
+      read -rsn1 confirm
+      if [ -z "$confirm" ]; then
+        # Enter was pressed, set DRIVE and proceed
+        DRIVE="${options[$selected]}"
+        # Validate drive
+        if [ ! -b "$DRIVE" ]; then
+          echo "Error: $DRIVE is not a valid block device."
+          exit 1
         fi
+        echo "Selected drive: $DRIVE"
+        return 0 # Proceed with installation
+      elif [ "$confirm" == $'\x1b' ]; then
+        # Escape was pressed, return to menu
+        continue
       else
-        # Error reading confirmation, return to menu
+        # Any other key, return to menu
         continue
       fi
     fi
-    # Other keys (key_status -eq 1) redraw the menu
+    # Escape or other keys (key_status -eq 1) redraw the menu
   done
 }
+
 
 #############################################################
 ######### END SELECTION MENU ################################
