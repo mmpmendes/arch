@@ -60,46 +60,39 @@ select_drive() {
     echo "###########################################"
   }
 
-  # Function to handle key input
-  read_arrow() {
-    local key
-    read -rsn1 key # Read one character silently
+  # Save terminal settings and set to raw mode
+  stty_orig=$(stty -g)
+  stty -echo raw
+
+  # Drive selection loop
+  while true; do
+    draw_menu
+    # Read a single character
+    read -rsn1 key
     if [[ $key == $'\x1b' ]]; then
-      read -rsn2 -t 0.1 key 2>/dev/null # Read two more characters with timeout
+      # Read the next two characters for arrow keys
+      read -rsn2 -t 0.5 key 2>/dev/null
       case $key in
         '[A') # Up arrow
           ((selected--))
           if [ $selected -lt 0 ]; then
             selected=$((total_options-1))
           fi
-          return 1
           ;;
         '[B') # Down arrow
           ((selected++))
           if [ $selected -ge $total_options ]; then
             selected=0
           fi
-          return 1
           ;;
-        *) # Escape key alone or other sequences
-          return 1
+        *) # Ignore other escape sequences
+          continue
           ;;
       esac
     elif [[ $key == "" ]]; then
-      # Enter key
-      return 0
-    fi
-    return 1 # Other keys return to menu
-  }
-
-  # Drive selection loop
-  while true; do
-    draw_menu
-    read_arrow
-    key_status=$?
-
-    if [ $key_status -eq 0 ]; then
-      # Enter was pressed, handle selection
+      # Enter key pressed
+      # Restore terminal settings before confirmation
+      stty "$stty_orig"
       echo "Are you sure you want to use drive ${options[$selected]} to install Arch? ALL DATA WILL BE LOST!"
       echo "Press Enter to continue, Esc or any other key to cancel..."
       read -rsn1 confirm
@@ -112,16 +105,16 @@ select_drive() {
           exit 1
         fi
         echo "Selected drive: $DRIVE"
+        # Restore terminal settings before returning
+        stty "$stty_orig"
         return 0 # Proceed with installation
-      elif [ "$confirm" == $'\x1b' ]; then
-        # Escape was pressed, return to menu
-        continue
       else
         # Any other key, return to menu
+        stty -echo raw # Re-enable raw mode for menu
         continue
       fi
     fi
-    # Escape or other keys (key_status -eq 1) redraw the menu
+    # Other keys redraw the menu
   done
 }
 
