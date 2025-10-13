@@ -14,8 +14,6 @@ KEYMAP='pt-latin9'
 #############################################################
 
 select_drive() {
-  # Ensure stdin is bound to the terminal
-  exec </dev/tty
 
   # Initialize empty variable to store drive paths
   DRIVE_PATHS=""
@@ -337,6 +335,8 @@ install_grub(){
 }
 
 #set -e
+# Ensure stdin is bound to the terminal
+exec </dev/tty
 
 if [ "$1" == "chroot" ]
 then
