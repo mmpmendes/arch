@@ -9,6 +9,9 @@ USER_PASSWORD=''
 TIMEZONE='Europe/Lisbon'
 KEYMAP='pt-latin9'
 
+# Ensure stdin is bound to the terminal
+exec </dev/tty
+
 #############################################################
 ######### SELECTION MENU ####################################
 #############################################################
@@ -335,8 +338,6 @@ install_grub(){
 }
 
 #set -e
-# Ensure stdin is bound to the terminal
-exec </dev/tty
 
 if [ "$1" == "chroot" ]
 then
