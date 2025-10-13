@@ -20,14 +20,7 @@ select_drive() {
 
   # Array of menu options
   options=($DRIVE_PATHS)
-  # Current selected index
-  selected=0
-  # Total number of options
   total_options=${#options[@]}
-
-  # Configure terminal settings for consistent input
-  stty -echo raw  # Disable echo and set raw mode
-  trap 'stty echo cooked; exit' INT TERM EXIT  # Restore terminal settings on exit
 
   # Function to draw the menu
   draw_menu() {
@@ -37,84 +30,42 @@ select_drive() {
     echo "###########################################"
     echo "#"
     for ((i=0; i<total_options; i++)); do
-      if [ $i -eq $selected ]; then
-        # Highlight selected option with > and background color
-        echo -e "# > \033[7m${options[$i]}\033[0m "
-      else
-        echo "#   ${options[$i]}   "
-      fi
+      echo "# $((i+1)). ${options[$i]}"
     done
     echo "#"
     echo "###########################################"
-    echo "#   Use ↑↓ to navigate, Enter to select   #"
+    echo "# Enter the number of the drive to select #"
     echo "###########################################"
-  }
-
-  # Function to handle key input
-  read_arrow() {
-    local key
-    read -rsn1 key  # Read one character silently
-    if [[ $key == $'\x1b' ]]; then
-      read -rsn2 -t 0.5 key 2>/dev/null  # Increase timeout to 0.5 seconds
-      case $key in
-        '[A') # Up arrow
-          ((selected--))
-          if [ $selected -lt 0 ]; then
-            selected=$((total_options-1))
-          fi
-          return 1
-          ;;
-        '[B') # Down arrow
-          ((selected++))
-          if [ $selected -ge $total_options ]; then
-            selected=0
-          fi
-          return 1
-          ;;
-        *) # Escape key alone or other sequences
-          return 1
-          ;;
-      esac
-    elif [[ $key == "" ]]; then
-      # Enter key
-      return 0
-    fi
-    # Debug: Log unexpected key (uncomment for debugging)
-    # echo "DEBUG: Received key: $(printf %q "$key")" >&2
-    return 1 # Other keys return to menu
   }
 
   # Drive selection loop
   while true; do
     draw_menu
-    read_arrow
-    key_status=$?
+    echo -n "Selection (1-$total_options): "
+    read choice
 
-    if [ $key_status -eq 0 ]; then
-      # Enter was pressed, handle selection
-      echo "Are you sure you want to use drive ${options[$selected]} to install Arch? ALL DATA WILL BE LOST!"
-      echo "Press Enter to continue, Esc or any other key to cancel..."
+    # Validate input
+    if [[ "$choice" =~ ^[0-9]+$ && $choice -ge 1 && $choice -le $total_options ]]; then
+      DRIVE="${options[$((choice-1))]}"
+      echo "Are you sure you want to use drive $DRIVE to install Arch? ALL DATA WILL BE LOST!"
+      echo "Press Enter to continue, any other key to cancel..."
       read -rsn1 confirm
       if [ -z "$confirm" ]; then
-        # Enter was pressed, set DRIVE and proceed
-        DRIVE="${options[$selected]}"
-        # Validate drive
+        # Enter was pressed, validate drive
         if [ ! -b "$DRIVE" ]; then
           echo "Error: $DRIVE is not a valid block device."
           exit 1
         fi
         echo "Selected drive: $DRIVE"
-        stty echo cooked  # Restore terminal settings
         return 0 # Proceed with installation
-      elif [ "$confirm" == $'\x1b' ]; then
-        # Escape was pressed, return to menu
-        continue
       else
         # Any other key, return to menu
         continue
       fi
+    else
+      echo "Invalid selection. Please enter a number between 1 and $total_options."
+      sleep 2
     fi
-    # Escape or other keys (key_status -eq 1) redraw the menu
   done
 }
 
