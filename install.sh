@@ -116,6 +116,7 @@ select_drive() {
           exit 1
         fi
         echo "Selected drive: $DRIVE"
+        DRIVE_TYPE=$(get_drive_type "$DRIVE")
         return 0 # Proceed with installation
       elif [ "$confirm" == $'\x1b' ]; then
         # Escape was pressed, return to menu
@@ -134,6 +135,17 @@ select_drive() {
 ######### END SELECTION MENU ################################
 #############################################################
 
+# Function to determine drive type
+get_drive_type() {
+  local drive="$1"
+  if [[ $drive == /dev/nvme* ]]; then
+    echo "nvme"
+  elif [[ $drive == /dev/sd* ]]; then
+    echo "sda"
+  else
+    echo "unknown"
+  fi
+}
 
 setup() {
 
@@ -210,42 +222,51 @@ configure() {
 }
 
 partition_drive() {
-    local drive="$1"
+    local installation_drive="$1"
 
-    parted -s "$drive" \
+    parted -s "$installation_drive" \
         mklabel gpt \
         mkpart primary fat32 1MiB 513MiB \
         set 1 boot on \
         mkpart primary linux-swap 513MiB 8705MiB \
         mkpart primary btrfs 8705MiB 100%
+
+  case "$DRIVE_TYPE" in
+    nvme) partition_suffix="p"; echo "Using NVMe scheme (e.g., ${installation_drive}p1)" ;;
+    sda) echo "Using SDA scheme (e.g., ${installation_drive}1)" ;;
+    *) echo "Unknown drive type"; exit 1 ;;
+  esac
+  BOOT_PARTITION="${installation_drive}${partition_suffix}1"
+  SWAP_PARTITION="${installation_drive}${partition_suffix}2"
+  ROOT_PARTITION="${installation_drive}${partition_suffix}3"
 }
 
 format_filesystems() {
-    local boot_partition="$1"p1;
-    local swap_partition="$1"p2;
-    local root_partition="$1"p3;
+    #local boot_partition="$1"p1;
+    #local swap_partition="$1"p2;
+    #local root_partition="$1"p3;
 
-    mkfs.fat -F 32 -n boot "$boot_partition"
-    mkfs.btrfs -f -L root "$root_partition"
-    mkswap -L swap "$swap_partition"
+    mkfs.fat -F 32 -n boot "$BOOT_PARTITION"
+    mkfs.btrfs -f -L root "$ROOT_PARTITION"
+    mkswap -L swap "$SWAP_PARTITION"
 }
 
 mount_filesystems() {
-    local boot_partition="$1"p1;
-    local swap_partition="$1"p2;
-    local root_partition="$1"p3;
+    #local boot_partition="$1"p1;
+    #local swap_partition="$1"p2;
+    #local root_partition="$1"p3;
 
-    mount "$root_partition" /mnt
+    mount "$ROOT_PARTITION" /mnt
     btrfs subvolume create /mnt/@
     btrfs subvolume create /mnt/@home
     umount /mnt
 
-    mount -o subvol=@ "$root_partition" /mnt
+    mount -o subvol=@ "$ROOT_PARTITION" /mnt
     mkdir -p /mnt/home
-    mount -o subvol=@home "$root_partition" /mnt/home
+    mount -o subvol=@home "$ROOT_PARTITION" /mnt/home
     mkdir /mnt/boot
-    mount "$boot_partition" /mnt/boot
-    swapon "$swap_partition"
+    mount "$BOOT_PARTITION" /mnt/boot
+    swapon "$SWAP_PARTITION"
 }
 
 install_base() {
