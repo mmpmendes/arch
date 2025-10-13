@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ensure stdin is bound to the terminal
+exec </dev/tty
+
 # Update the system before installing packages
 sudo pacman -Syu
 
