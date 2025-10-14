@@ -22,8 +22,10 @@ sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config 
 
 echo "Installation and service setup complete!"
 
-##### FAST BOOT ####
-# Use sed to modify GRUB_TIMEOUT and GRUB_TIMEOUT_STYLE
+#############################################################
+######################### FAST BOOT ###########################
+#############################################################
+
 sudo sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
 sudo sed -i 's/GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=hidden/' /etc/default/grub
 
@@ -37,12 +39,10 @@ echo "GRUB configuration updated and all 'echo' lines in /boot/grub/grub.cfg com
 
 sleep 5
 
-### manual stuff ###
-# use transfuse to restore kde user settings
-# https://gitlab.com/cscs/transfuse
+#############################################################
+####################### LOGIN SCREEN ##########################
+#############################################################
 
-## login screen theme
-## https://github.com/Keyitdev/sddm-astronaut-theme?tab=readme-ov-file
 sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
 sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
 
@@ -84,7 +84,41 @@ else
     echo "Error: Failed to set Current=sddm-astronaut-theme in $CONFIG_FILE"
 fi
 
+#############################################################
+########################## MPV ###############################
+#############################################################
+
+# Define the directory and file
+MPV_DIR="/etc/mpv"
+CONFIG_FILE="/etc/mpv/input.conf"
+
+# Create the directory if it doesn't exist
+if [[ ! -d "$MPV_DIR" ]]; then
+    echo "Creating directory $MPV_DIR"
+    sudo mkdir -p "$MPV_DIR"
+fi
+
+# Create or overwrite the input.conf file with the specified content
+sudo tee "$CONFIG_FILE" > /dev/null << 'EOF'
+WHEEL_UP      seek 10                  # seek 10 seconds forward
+WHEEL_DOWN    seek -10                 # seek 10 seconds backward
+WHEEL_LEFT    add volume -2
+WHEEL_RIGHT   add volume 2
+EOF
+
+echo "Created $CONFIG_FILE with the specified content."
+
+# Verify the file contents
+if grep -q "WHEEL_UP.*seek 10" "$CONFIG_FILE"; then
+    echo "Confirmed: input.conf contains the correct settings."
+else
+    echo "Error: Failed to create $CONFIG_FILE with the correct content."
+fi
+
+#############################################################
+########################## SDDM #############################
+#############################################################
 # This needs to be run last otherwise it will simply exit running script and present the login GUI
-# Enable and start SDDM service
+
 sudo systemctl enable sddm
 sudo systemctl start sddm
