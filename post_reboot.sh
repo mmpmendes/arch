@@ -20,10 +20,6 @@ sudo pacman -S mesa vulkan-radeon libva-mesa-driver mesa-vdpau radeontop
 # Install extra packages
 sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin git
 
-# Enable and start SDDM service
-sudo systemctl enable sddm
-sudo systemctl start sddm
-
 echo "Installation and service setup complete!"
 
 ##### FAST BOOT ####
@@ -47,3 +43,8 @@ sleep 5
 
 ## login screen theme
 ## https://github.com/Keyitdev/sddm-astronaut-theme?tab=readme-ov-file
+
+# This needs to be run last otherwise it will simply exit running script and present the login GUI
+# Enable and start SDDM service
+sudo systemctl enable sddm
+sudo systemctl start sddm
