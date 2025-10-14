@@ -45,11 +45,44 @@ sleep 5
 ## https://github.com/Keyitdev/sddm-astronaut-theme?tab=readme-ov-file
 sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
 sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
-# Define the file and the desired theme
+
+# Define the directory and file
+CONFIG_DIR="/etc/sddm.conf.d"
 CONFIG_FILE="/etc/sddm.conf.d/kde_settings.conf"
-DESIRED_THEME="sddm-astronaut-theme"
-# Replace the Current= line with the desired theme
-sudo sed -i "s/^Current=.*/Current=$DESIRED_THEME/" "$CONFIG_FILE"
+
+# Create the directory if it doesn't exist
+if [[ ! -d "$CONFIG_DIR" ]]; then
+    echo "Creating directory $CONFIG_DIR"
+    sudo mkdir -p "$CONFIG_DIR"
+fi
+
+# Create or overwrite the kde_settings.conf file with the specified content
+sudo tee "$CONFIG_FILE" > /dev/null << 'EOF'
+[Autologin]
+Relogin=false
+Session=
+User=
+
+[General]
+HaltCommand=/usr/bin/systemctl poweroff
+RebootCommand=/usr/bin/systemctl reboot
+
+[Theme]
+Current=sddm-astronaut-theme
+
+[Users]
+MaximumUid=60513
+MinimumUid=1000
+EOF
+
+echo "Created $CONFIG_FILE with the specified content."
+
+# Verify the Current= line in the [Theme] section
+if grep -q "^Current=sddm-astronaut-theme" "$CONFIG_FILE"; then
+    echo "Confirmed: Current=sddm-astronaut-theme is set in $CONFIG_FILE"
+else
+    echo "Error: Failed to set Current=sddm-astronaut-theme in $CONFIG_FILE"
+fi
 
 # This needs to be run last otherwise it will simply exit running script and present the login GUI
 # Enable and start SDDM service
