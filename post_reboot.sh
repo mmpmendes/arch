@@ -43,6 +43,13 @@ sleep 5
 
 ## login screen theme
 ## https://github.com/Keyitdev/sddm-astronaut-theme?tab=readme-ov-file
+sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
+sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
+# Define the file and the desired theme
+CONFIG_FILE="/etc/sddm.conf.d/kde_settings.conf"
+DESIRED_THEME="sddm-astronaut-theme"
+# Replace the Current= line with the desired theme
+sudo sed -i "s/^Current=.*/Current=$DESIRED_THEME/" "$CONFIG_FILE"
 
 # This needs to be run last otherwise it will simply exit running script and present the login GUI
 # Enable and start SDDM service
