@@ -2,9 +2,9 @@
 
 #config variables
 #DRIVE='/dev/sda'
-HOSTNAME='omega'
+HOSTNAME=''
 ROOT_PASSWORD=''
-USER_NAME='ishmael'
+USER_NAME=''
 USER_PASSWORD=''
 TIMEZONE='Europe/Lisbon'
 KEYMAP='pt-latin9'
@@ -190,6 +190,10 @@ configure() {
     set_keymap
 
     echo '##### Setting hostname #####'
+    if [ -z "$HOSTNAME" ]; then
+        echo "Enter your hostname:"
+        read -p '' HOSTNAME
+    fi
     set_hostname "$HOSTNAME"
 
     echo '##### Configuring sudoers #####'
@@ -204,6 +208,16 @@ configure() {
     echo '##### Setting root password #####'
     set_root_password "$ROOT_PASSWORD"
 
+    if [ -z "$USER_NAME" ]; then
+        echo "Enter your username:"
+        read -p '' USER_NAME
+    fi
+    if [ -z "$USER_PASSWORD" ]; then
+        echo "Enter the password for user $USER_NAME"
+        stty -echo
+        read -p '' USER_PASSWORD
+        stty echo
+    fi
     if [ -z "$USER_PASSWORD" ]; then
         echo "Enter the password for user $USER_NAME"
         stty -echo
