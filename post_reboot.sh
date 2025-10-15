@@ -120,7 +120,7 @@ fi
 #############################################################
 
 # Define the file path
-KEYB_FILE="~/.config/kxkbrc"
+KEYB_FILE="$HOME/.config/kxkbrc"
 
 # Create or overwrite the kxkbrc file with the specified content
 sudo tee "$KEYB_FILE" > /dev/null << 'EOF'
@@ -135,36 +135,52 @@ sleep 5
 #############################################################
 ####################### WALLPAPER/SCREENLOCK ##################
 #############################################################
-##pick from login screen
-##TODOOOO ADD WALLPAPER FOldeR in project and image in it
-WALLPAPER_FILE="/usr/share/sddm/themes/sddm-astronaut-theme/Wallpapers/cyberpunk2077.jpg"
-# Define the file path
-SCRLCK_FILE="~/.config/kscreenlockerrc"
 
-# Create or overwrite the kscreenlockerrc file with the specified content
-sudo tee "$SCRLCK_FILE" > /dev/null << 'EOF'
+# Define the wallpaper file path
+WALLPAPER_FILE="/usr/share/sddm/themes/sddm-astronaut-theme/Wallpapers/cyberpunk2077.jpg"
+
+# Check if the wallpaper file exists
+if [ ! -f "$WALLPAPER_FILE" ]; then
+    echo "Error: Wallpaper file $WALLPAPER_FILE does not exist."
+    exit 1
+fi
+
+# Define the file paths
+SCRLCK_FILE="$HOME/.config/kscreenlockerrc"
+WALLPATH_FILE="$HOME/.config/plasmarc"
+
+# Create or overwrite the kscreenlockerrc file
+if ! tee "$SCRLCK_FILE" > /dev/null << EOF
 [Greeter][Wallpaper][org.kde.image][General]
-Image="{$WALLPAPER_FILE}"
-PreviewImage="{$WALLPAPER_FILE}"
+Image=$WALLPAPER_FILE
+PreviewImage=$WALLPAPER_FILE
 EOF
+then
+    echo "Error: Failed to write to $SCRLCK_FILE"
+    exit 1
+fi
 
 echo "Created $SCRLCK_FILE with the specified content."
-sleep 5
 
-# Define the file path
-WALLPATH_FILE="~/.config/plasmarc"
-
-# Create or overwrite the plasmarc file with the specified content
-sudo tee "$WALLPATH_FILE" > /dev/null << 'EOF'
+# Create or overwrite the plasmarc file
+if ! tee "$WALLPATH_FILE" > /dev/null << EOF
 [Wallpapers]
-usersWallpapers="{$WALLPAPER_FILE}"
+usersWallpapers=$WALLPAPER_FILE
 EOF
+then
+    echo "Error: Failed to write to $WALLPATH_FILE"
+    exit 1
+fi
 
 echo "Created $WALLPATH_FILE with the specified content."
-sleep 5
 
-#####update plasma-org.kde.plasma.desktop-appletsrc####
-sudo sed -i 's/Image=/.*/Image=$WALLPAPER_FILE/' ~/.config/plasma-org.kde.plasma.desktop-appletsrc
+# Update plasma-org.kde.plasma.desktop-appletsrc
+if ! sed -i "s/Image=.*/Image=$WALLPAPER_FILE/" "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"; then
+    echo "Error: Failed to update plasma-org.kde.plasma.desktop-appletsrc"
+    exit 1
+fi
+
+echo "Updated plasma-org.kde.plasma.desktop-appletsrc with the specified wallpaper."
 
 #############################################################
 ########################## SDDM #############################
