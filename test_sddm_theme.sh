@@ -100,3 +100,6 @@ PreviewImage=/home/ishmael/Downloads/cp2k77.jpeg
 ##plasmarc##
 [Wallpapers]
 usersWallpapers=/home/ishmael/Downloads/cp2k77.jpeg
+
+#####update plasma-org.kde.plasma.desktop-appletsrc####
+Image=/home/ishmael/Downloads/cp2k77.jpeg
