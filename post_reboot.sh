@@ -119,8 +119,15 @@ fi
 ########################## KEYBOARD ##########################
 #############################################################
 
+KDE_CONFIGS_DIR="$HOME/.config"
+# Create the directory if it doesn't exist
+if [[ ! -d "$KDE_CONFIGS_DIR" ]]; then
+    echo "Creating directory $KDE_CONFIGS_DIR"
+    sudo mkdir -p "$KDE_CONFIGS_DIR"
+fi
+
 # Define the file path
-KEYB_FILE="$HOME/.config/kxkbrc"
+KEYB_FILE="$KDE_CONFIGS_DIR/kxkbrc"
 
 # Create or overwrite the kxkbrc file with the specified content
 sudo tee "$KEYB_FILE" > /dev/null << 'EOF'
@@ -146,8 +153,8 @@ if [ ! -f "$WALLPAPER_FILE" ]; then
 fi
 
 # Define the file paths
-SCRLCK_FILE="$HOME/.config/kscreenlockerrc"
-WALLPATH_FILE="$HOME/.config/plasmarc"
+SCRLCK_FILE="$KDE_CONFIGS_DIR/kscreenlockerrc"
+WALLPATH_FILE="$KDE_CONFIGS_DIR/plasmarc"
 
 # Create or overwrite the kscreenlockerrc file
 sudo tee "$SCRLCK_FILE" > /dev/null << EOF
@@ -167,7 +174,10 @@ EOF
 echo "Created $WALLPATH_FILE with the specified content."
 
 # Update plasma-org.kde.plasma.desktop-appletsrc
-sudo sed -i "s/Image=.*/Image=$WALLPAPER_FILE/" "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
+sudo sed -i "s/Image=.*/Image=$WALLPAPER_FILE/" "$KDE_CONFIGS_DIR/plasma-org.kde.plasma.desktop-appletsrc"
+
+#####ALSO ADD
+##[ScreenMapping] check remaining
 
 echo "Updated plasma-org.kde.plasma.desktop-appletsrc with the specified wallpaper."
 
