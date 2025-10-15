@@ -116,6 +116,57 @@ else
 fi
 
 #############################################################
+########################## KEYBOARD ##########################
+#############################################################
+
+# Define the file path
+KEYB_FILE="~/.config/kxkbrc"
+
+# Create or overwrite the kxkbrc file with the specified content
+sudo tee "$KEYB_FILE" > /dev/null << 'EOF'
+[Layout]
+LayoutList=pt
+Use=true
+EOF
+
+echo "Created $KEYB_FILE with the specified content."
+sleep 5
+
+#############################################################
+####################### WALLPAPER/SCREENLOCK ##################
+#############################################################
+##pick from login screen
+##TODOOOO ADD WALLPAPER FOldeR in project and image in it
+WALLPAPER_FILE="/usr/share/sddm/themes/sddm-astronaut-theme/Wallpapers/cyberpunk2077.jpg"
+# Define the file path
+SCRLCK_FILE="~/.config/kscreenlockerrc"
+
+# Create or overwrite the kscreenlockerrc file with the specified content
+sudo tee "$SCRLCK_FILE" > /dev/null << 'EOF'
+[Greeter][Wallpaper][org.kde.image][General]
+Image="{$WALLPAPER_FILE}"
+PreviewImage="{$WALLPAPER_FILE}"
+EOF
+
+echo "Created $SCRLCK_FILE with the specified content."
+sleep 5
+
+# Define the file path
+WALLPATH_FILE="~/.config/plasmarc"
+
+# Create or overwrite the plasmarc file with the specified content
+sudo tee "$WALLPATH_FILE" > /dev/null << 'EOF'
+[Wallpapers]
+usersWallpapers="{$WALLPAPER_FILE}"
+EOF
+
+echo "Created $WALLPATH_FILE with the specified content."
+sleep 5
+
+#####update plasma-org.kde.plasma.desktop-appletsrc####
+sudo sed -i 's/Image=/.*/Image=$WALLPAPER_FILE/' ~/.config/plasma-org.kde.plasma.desktop-appletsrc
+
+#############################################################
 ########################## SDDM #############################
 #############################################################
 # This needs to be run last otherwise it will simply exit running script and present the login GUI
