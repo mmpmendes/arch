@@ -173,13 +173,45 @@ EOF
 
 echo "Created $WALLPATH_FILE with the specified content."
 
-# Update plasma-org.kde.plasma.desktop-appletsrc
-sudo sed -i "s/Image=.*/Image=$WALLPAPER_FILE/" "$KDE_CONFIGS_DIR/plasma-org.kde.plasma.desktop-appletsrc"
+# Define the configuration file path
+APPLETS_CONFIG_FILE="$KDE_CONFIGS_DIR/plasma-org.kde.plasma.desktop-appletsrc"
+# Check if the configuration file exists
+if [ -f "$APPLETS_CONFIG_FILE" ]; then
+    echo "Configuration file found."
+else
+    echo "Configuration file not found. Creating a new one..."
+    touch "$APPLETS_CONFIG_FILE"
+    # Initialize with basic structure
+    echo "[Containments][1][Wallpaper][org.kde.image][General]" >> "$APPLETS_CONFIG_FILE"
+fi
 
-#####ALSO ADD
-##[ScreenMapping] check remaining
+sleep 10
 
-echo "Updated plasma-org.kde.plasma.desktop-appletsrc with the specified wallpaper."
+# Check if the wallpaper section exists in the file
+if grep -q "\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]" "$APPLETS_CONFIG_FILE"; then
+    # Check if the Image line already exists
+    if grep -q "^Image=" "$APPLETS_CONFIG_FILE"; then
+        # Update the existing Image line
+        sed -i "/\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]/,/^$/ s|^Image=.*|Image=$WALLPAPER_FILE|" "$APPLETS_CONFIG_FILE"
+        echo "Updated wallpaper path to: $WALLPAPER_FILE"
+    else
+        # Append the Image line under the section
+        sed -i "/\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]/a Image=$WALLPAPER_FILE" "$APPLETS_CONFIG_FILE"
+        echo "Added wallpaper path: $WALLPAPER_FILE"
+    fi
+else
+    # Append the entire section if it doesn't exist
+    echo -e "\n[Containments][1][Wallpaper][org.kde.image][General]\nImage=$WALLPAPER_FILE" >> "$APPLETS_CONFIG_FILE"
+    echo "Created new wallpaper section with path: $WALLPAPER_FILE"
+fi
+
+sleep 10
+
+# Restart Plasma to apply changes
+echo "Restarting Plasma desktop..."
+kquitapp5 plasmashell && kstart5 plasmashell &
+
+echo "Configuration updated successfully!"
 
 #############################################################
 ########################## SDDM #############################
