@@ -150,35 +150,24 @@ SCRLCK_FILE="$HOME/.config/kscreenlockerrc"
 WALLPATH_FILE="$HOME/.config/plasmarc"
 
 # Create or overwrite the kscreenlockerrc file
-if ! tee "$SCRLCK_FILE" > /dev/null << EOF
+sudo tee "$SCRLCK_FILE" > /dev/null << EOF
 [Greeter][Wallpaper][org.kde.image][General]
 Image=$WALLPAPER_FILE
 PreviewImage=$WALLPAPER_FILE
 EOF
-then
-    echo "Error: Failed to write to $SCRLCK_FILE"
-    exit 1
-fi
 
 echo "Created $SCRLCK_FILE with the specified content."
 
 # Create or overwrite the plasmarc file
-if ! tee "$WALLPATH_FILE" > /dev/null << EOF
+sudo tee "$WALLPATH_FILE" > /dev/null << EOF
 [Wallpapers]
 usersWallpapers=$WALLPAPER_FILE
 EOF
-then
-    echo "Error: Failed to write to $WALLPATH_FILE"
-    exit 1
-fi
 
 echo "Created $WALLPATH_FILE with the specified content."
 
 # Update plasma-org.kde.plasma.desktop-appletsrc
-if ! sed -i "s/Image=.*/Image=$WALLPAPER_FILE/" "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"; then
-    echo "Error: Failed to update plasma-org.kde.plasma.desktop-appletsrc"
-    exit 1
-fi
+sudo sed -i "s/Image=.*/Image=$WALLPAPER_FILE/" "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
 
 echo "Updated plasma-org.kde.plasma.desktop-appletsrc with the specified wallpaper."
 
