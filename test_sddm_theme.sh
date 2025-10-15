@@ -37,3 +37,66 @@ if grep -q "^Current=sddm-astronaut-theme" "$CONFIG_FILE"; then
 else
     echo "Error: Failed to set Current=sddm-astronaut-theme in $CONFIG_FILE"
 fi
+
+#####THUMBNAILS SETTINGS####
+#####dolphinrc####
+###add###
+[IconsMode]
+PreviewSize=96
+
+#####kdeglobals####
+###add###
+[PreviewSettings]
+EnableRemoteFolderThumbnail=false
+MaximumRemoteSize=10485760000
+
+
+#####kwinrc####
+###add###
+[Effect-overview]
+BorderActivate=2
+
+[ElectricBorders]
+BottomRight=ShowDesktop
+
+[ScreenEdges]
+RemainActiveOnFullscreen=true
+
+#####kxkbrc####
+###add###
+
+[Layout]
+LayoutList=pt
+Use=true
+
+kwinoutputconfig.json
+##replace##
+"scale": 2.25,
+
+######kdeglobals - FULL FILE#####
+applies theme
+
+##kdedefaults > kdeglobals##
+###replace
+[General]
+ColorScheme=BreezeDark
+
+[Icons]
+Theme=breeze-dark
+
+###ksplashrc###
+##replace##
+Theme=org.kde.breezedark.desktop
+
+
+#####SCREENLOCK####
+##create kscreenlockerrc###
+
+[Greeter][Wallpaper][org.kde.image][General]
+Image=/home/ishmael/Downloads/cp2k77.jpeg
+PreviewImage=/home/ishmael/Downloads/cp2k77.jpeg
+
+###create###
+##plasmarc##
+[Wallpapers]
+usersWallpapers=/home/ishmael/Downloads/cp2k77.jpeg
