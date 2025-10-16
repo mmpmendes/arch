@@ -40,7 +40,7 @@ echo "####################################################################"
 echo "###################### Install extra packages ######################"
 echo "####################################################################\n"
 
-sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin git
+sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin git code
 
 sleep 1
 
