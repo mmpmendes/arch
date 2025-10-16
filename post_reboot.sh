@@ -9,46 +9,46 @@ sudo pacman -Syu
 clear
 echo "####################################################################"
 echo "#################### Install minimal essentials ####################"
-echo "####################################################################"
+echo "####################################################################\n"
 
 sudo pacman -S sddm sddm-kcm plasma-desktop bluedevil kscreen konsole kate kwalletmanager dolphin ark kdegraphics-thumbnailers ffmpegthumbs plasma-pa plasma-nm gwenview plasma-systemmonitor 
 
-sleep 3
+sleep 1
 
 clear
 echo "####################################################################"
 echo "################ Enable and start Bluetooth service ################"
-echo "####################################################################"
+echo "####################################################################\n"
  
 sudo systemctl start bluetooth.service
 sudo systemctl enable bluetooth.service
 
-sleep 3
+sleep 1
 
 clear
 echo "####################################################################"
 echo "##################### Install CPU/GPU packages #####################"
-echo "####################################################################"
+echo "####################################################################\n"
 
 sudo pacman -S amd-ucode
 sudo pacman -S mesa vulkan-radeon libva-mesa-driver mesa-vdpau radeontop
 
-sleep 3
+sleep 1
 
 clear
 echo "####################################################################"
 echo "###################### Install extra packages ######################"
-echo "####################################################################"
+echo "####################################################################\n"
 
 sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin git
 
-sleep 3
+sleep 1
 
 
 clear
 echo "####################################################################"
 echo "####################### Setting up Fast Boot #######################"
-echo "####################################################################"
+echo "####################################################################\n"
 
 sudo sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
 sudo sed -i 's/GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=hidden/' /etc/default/grub
@@ -59,12 +59,12 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 # Comment out all lines containing 'echo' in /boot/grub/grub.cfg
 sudo sed -i '/echo/s/^/#/' /boot/grub/grub.cfg
 
-sleep 3
+sleep 1
 
 clear
 echo "####################################################################"
 echo "###################### Setting up Login Screen #####################"
-echo "####################################################################"
+echo "####################################################################\n"
 
 sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
 sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
@@ -103,12 +103,12 @@ else
     echo "Error: Failed to set Current=sddm-astronaut-theme in $KDE_SETTINGS_FILE"
 fi
 
-sleep 3
+sleep 1
 
 clear
 echo "####################################################################"
 echo "######################## Setting mpv configs #######################"
-echo "####################################################################"
+echo "####################################################################\n"
 
 # Define the directory and file
 MPV_DIR="/etc/mpv"
@@ -133,12 +133,12 @@ else
     echo "Error: Failed to create $MPV_CONFIG_FILE with the correct content."
 fi
 
-sleep 3
+sleep 1
 
 clear
 echo "####################################################################"
 echo "###################### Setting keyboard layout #####################"
-echo "####################################################################"
+echo "####################################################################\n"
 
 KDE_CONFIGS_DIR="$HOME/.config"
 [[ -d "$KDE_CONFIGS_DIR" ]] || mkdir -p "$KDE_CONFIGS_DIR"
@@ -155,12 +155,12 @@ EOF
 
 echo "Created $KEYB_FILE with the specified content."
 
-sleep 3
+sleep 1
 
 clear
 echo "####################################################################"
 echo "################### Setting Wallpaper / ScreenLock #################"
-echo "####################################################################"
+echo "####################################################################\n"
 # Define the wallpaper file path
 WALLPAPER_FILE="/usr/share/sddm/themes/sddm-astronaut-theme/Wallpapers/cyberpunk2077.jpg"
 
@@ -183,7 +183,7 @@ EOF
 
 echo "Created $SCRLCK_FILE with the specified content."
 
-sleep 3
+sleep 1
 
 # Create or overwrite the plasmarc file
 tee "$WALLPATH_FILE" > /dev/null << EOF
@@ -193,15 +193,11 @@ EOF
 
 echo "Created $WALLPATH_FILE with the specified content."
 
-sleep 3
+sleep 1
 
 XML_FILE="/usr/share/plasma/wallpapers/org.kde.image/contents/config/main.xml"
 
-# Ensure wallpaper file exists and is readable
-if [[ ! -f "$WALLPAPER_FILE" ]]; then
-  echo "Error: Wallpaper file $WALLPAPER_FILE does not exist."
-  exit 1
-fi
+# Ensure wallpaper file is readable
 sudo chmod 644 "$WALLPAPER_FILE"
 
 # Update XML file
@@ -212,18 +208,11 @@ if grep -q "file://$WALLPAPER_FILE" "$XML_FILE"; then
   echo "Wallpaper set to $WALLPAPER_FILE in $XML_FILE"
 else
   echo "Error: Failed to update $XML_FILE"
-  exit 1
 fi
 
-sleep 10
-
-# Restart Plasma to apply changes
-echo "Restarting Plasma desktop..."
-echo "Configuration updated successfully!"
-
-#############################################################
-########################## SDDM #############################
-#############################################################
+echo "####################################################################"
+echo "################## Enabling and starting sddm service ################"
+echo "####################################################################\n"
 # This needs to be run last otherwise it will simply exit running script and present the login GUI
 
 sudo systemctl enable sddm
