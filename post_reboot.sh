@@ -13,7 +13,7 @@ echo "####################################################################"
 
 sudo pacman -S sddm sddm-kcm plasma-desktop bluedevil kscreen konsole kate kwalletmanager dolphin ark kdegraphics-thumbnailers ffmpegthumbs plasma-pa plasma-nm gwenview plasma-systemmonitor 
 
-sleep 10
+sleep 3
 
 clear
 echo "####################################################################"
@@ -23,7 +23,7 @@ echo "####################################################################"
 sudo systemctl start bluetooth.service
 sudo systemctl enable bluetooth.service
 
-sleep 10
+sleep 3
 
 clear
 echo "####################################################################"
@@ -33,7 +33,7 @@ echo "####################################################################"
 sudo pacman -S amd-ucode
 sudo pacman -S mesa vulkan-radeon libva-mesa-driver mesa-vdpau radeontop
 
-sleep 10
+sleep 3
 
 clear
 echo "####################################################################"
@@ -42,7 +42,7 @@ echo "####################################################################"
 
 sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin git
 
-sleep 10
+sleep 3
 
 
 clear
@@ -59,7 +59,7 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 # Comment out all lines containing 'echo' in /boot/grub/grub.cfg
 sudo sed -i '/echo/s/^/#/' /boot/grub/grub.cfg
 
-sleep 10
+sleep 3
 
 clear
 echo "####################################################################"
@@ -103,7 +103,7 @@ else
     echo "Error: Failed to set Current=sddm-astronaut-theme in $KDE_SETTINGS_FILE"
 fi
 
-sleep 10
+sleep 3
 
 clear
 echo "####################################################################"
@@ -133,7 +133,7 @@ else
     echo "Error: Failed to create $MPV_CONFIG_FILE with the correct content."
 fi
 
-sleep 10
+sleep 3
 
 clear
 echo "####################################################################"
@@ -155,7 +155,7 @@ EOF
 
 echo "Created $KEYB_FILE with the specified content."
 
-sleep 10
+sleep 3
 
 clear
 echo "####################################################################"
@@ -183,7 +183,7 @@ EOF
 
 echo "Created $SCRLCK_FILE with the specified content."
 
-sleep 10
+sleep 3
 
 # Create or overwrite the plasmarc file
 tee "$WALLPATH_FILE" > /dev/null << EOF
@@ -193,33 +193,24 @@ EOF
 
 echo "Created $WALLPATH_FILE with the specified content."
 
-sleep 10
+sleep 3
 
 APPLETS_CONFIG_FILE="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
 
-# If config file doesn't exist, create it with minimal structure
+# If config file doesn't exist, create minimal structure
 if [ ! -f "$APPLETS_CONFIG_FILE" ]; then
     echo "Creating config file: $APPLETS_CONFIG_FILE"
     cat > "$APPLETS_CONFIG_FILE" << EOL
 [Containments][1]
 plugin=org.kde.desktopcontainment
 wallpaperplugin=org.kde.image
-
-[Containments][1][Wallpapers][org.kde.image][General]
-Image=$WALLPAPER_FILE
 EOL
 fi
 
-# Set wallpaper using kwriteconfig6
-kwriteconfig6 --file "$APPLETS_CONFIG_FILE" \
-  --group Containments --group 1 \
-  --group Wallpapers --group org.kde.image --group General \
-  --key Image "$WALLPAPER_FILE"
+# Apply wallpaper
+plasma-apply-wallpaperimage "$WALLPAPER_FILE"
 
 echo "Wallpaper set to: $WALLPAPER_FILE"
-
-# Apply changes
-kquitapp6 plasmashell && kstart6 plasmashell
 
 sleep 10
 
