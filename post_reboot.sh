@@ -204,7 +204,7 @@ if [ ! -f "$APPLETS_CONFIG_FILE" ]; then
 fi
 
 # Set wallpaper (assumes default desktop containment [1]; adjust if multi-desktop)
-kwriteconfig5 --file "$APPLETS_CONFIG_FILE" \
+kwriteconfig6 --file "$APPLETS_CONFIG_FILE" \
   --group Containments --group 1 \
   --group Wallpapers --group org.kde.image --group General \
   --key Image "$WALLPAPER_FILE"
