@@ -195,33 +195,24 @@ echo "Created $WALLPATH_FILE with the specified content."
 
 sleep 10
 
-# Define the configuration file path
-APPLETS_CONFIG_FILE="$KDE_CONFIGS_DIR/plasma-org.kde.plasma.desktop-appletsrc"
+APPLETS_CONFIG_FILE="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
 
-# Check if the configuration file exists
-if [ -f "$APPLETS_CONFIG_FILE" ]; then
-    echo "Configuration file found."
-else
-    echo "Configuration file not found. Creating a new one..."
-    # Create file with basic structure
-    echo "[Containments][1][Wallpaper][org.kde.image][General]" > "$APPLETS_CONFIG_FILE"
+# Ensure file exists (Plasma will create it if missing)
+if [ ! -f "$APPLETS_CONFIG_FILE" ]; then
+    echo "Config file missing—Plasma will generate defaults on next login."
+    exit 0
 fi
 
-# Check if the wallpaper section exists
-if grep -q "\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]" "$APPLETS_CONFIG_FILE"; then
-    # Update or add Image line
-    if grep -q "^Image=" "$APPLETS_CONFIG_FILE"; then
-        sed -i "/\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]/,/^$/ s|^Image=.*|Image=$WALLPAPER_FILE|" "$APPLETS_CONFIG_FILE"
-        echo "Updated wallpaper path to: $WALLPAPER_FILE"
-    else
-        sed -i "/\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]/a Image=$WALLPAPER_FILE" "$APPLETS_CONFIG_FILE"
-        echo "Added wallpaper path: $WALLPAPER_FILE"
-    fi
-else
-    # Append wallpaper section
-    echo -e "\n[Containments][1][Wallpaper][org.kde.image][General]\nImage=$WALLPAPER_FILE" >> "$APPLETS_CONFIG_FILE"
-    echo "Created new wallpaper section with path: $WALLPAPER_FILE"
-fi
+# Set wallpaper (assumes default desktop containment [1]; adjust if multi-desktop)
+kwriteconfig5 --file "$APPLETS_CONFIG_FILE" \
+  --group Containments --group 1 \
+  --group Wallpapers --group org.kde.image --group General \
+  --key Image "$WALLPAPER_FILE"
+
+echo "Wallpaper set to: $WALLPAPER_FILE"
+
+# Apply changes
+kquitapp6 plasmashell && kstart6 plasmashell
 
 sleep 10
 
