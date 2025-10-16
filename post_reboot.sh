@@ -195,22 +195,25 @@ echo "Created $WALLPATH_FILE with the specified content."
 
 sleep 3
 
-APPLETS_CONFIG_FILE="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
+XML_FILE="/usr/share/plasma/wallpapers/org.kde.image/contents/config/main.xml"
 
-# If config file doesn't exist, create minimal structure
-if [ ! -f "$APPLETS_CONFIG_FILE" ]; then
-    echo "Creating config file: $APPLETS_CONFIG_FILE"
-    cat > "$APPLETS_CONFIG_FILE" << EOL
-[Containments][1]
-plugin=org.kde.desktopcontainment
-wallpaperplugin=org.kde.image
-EOL
+# Ensure wallpaper file exists and is readable
+if [[ ! -f "$WALLPAPER_FILE" ]]; then
+  echo "Error: Wallpaper file $WALLPAPER_FILE does not exist."
+  exit 1
 fi
+sudo chmod 644 "$WALLPAPER_FILE"
 
-# Apply wallpaper
-plasma-apply-wallpaperimage "$WALLPAPER_FILE"
+# Update XML file
+sudo sed -i "/<entry name=\"Image\" type=\"String\">/,/<\/entry>/ s|<default>.*</default>|<default>file://$WALLPAPER_FILE</default>|" "$XML_FILE"
 
-echo "Wallpaper set to: $WALLPAPER_FILE"
+# Verify change
+if grep -q "file://$WALLPAPER_FILE" "$XML_FILE"; then
+  echo "Wallpaper set to $WALLPAPER_FILE in $XML_FILE"
+else
+  echo "Error: Failed to update $XML_FILE"
+  exit 1
+fi
 
 sleep 10
 
