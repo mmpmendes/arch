@@ -67,7 +67,7 @@ echo "###################### Setting up Login Screen #####################"
 echo "####################################################################"
 
 sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
-cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
+sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
 
 # Define the directory and file
 SDDM_CONFIG_DIR="/etc/sddm.conf.d"
