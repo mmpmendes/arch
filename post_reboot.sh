@@ -197,13 +197,20 @@ sleep 10
 
 APPLETS_CONFIG_FILE="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
 
-# Ensure file exists (Plasma will create it if missing)
+# If config file doesn't exist, create it with minimal structure
 if [ ! -f "$APPLETS_CONFIG_FILE" ]; then
-    echo "Config file missing—Plasma will generate defaults on next login."
-    exit 0
+    echo "Creating config file: $APPLETS_CONFIG_FILE"
+    cat > "$APPLETS_CONFIG_FILE" << EOL
+[Containments][1]
+plugin=org.kde.desktopcontainment
+wallpaperplugin=org.kde.image
+
+[Containments][1][Wallpapers][org.kde.image][General]
+Image=$WALLPAPER_FILE
+EOL
 fi
 
-# Set wallpaper (assumes default desktop containment [1]; adjust if multi-desktop)
+# Set wallpaper using kwriteconfig6
 kwriteconfig6 --file "$APPLETS_CONFIG_FILE" \
   --group Containments --group 1 \
   --group Wallpapers --group org.kde.image --group General \
