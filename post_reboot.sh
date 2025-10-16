@@ -66,8 +66,8 @@ echo "####################################################################"
 echo "###################### Setting up Login Screen #####################"
 echo "####################################################################"
 
-sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
-sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
+git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
+cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
 
 # Define the directory and file
 SDDM_CONFIG_DIR="/etc/sddm.conf.d"
@@ -141,13 +141,13 @@ echo "###################### Setting keyboard layout #####################"
 echo "####################################################################"
 
 KDE_CONFIGS_DIR="$HOME/.config"
-[[ -d "$KDE_CONFIGS_DIR" ]] || sudo mkdir -p "$KDE_CONFIGS_DIR"
+[[ -d "$KDE_CONFIGS_DIR" ]] || mkdir -p "$KDE_CONFIGS_DIR"
 
 # Define the file path
 KEYB_FILE="$KDE_CONFIGS_DIR/kxkbrc"
 
 # Create or overwrite the kxkbrc file with the specified content
-sudo tee "$KEYB_FILE" > /dev/null << 'EOF'
+tee "$KEYB_FILE" > /dev/null << 'EOF'
 [Layout]
 LayoutList=pt
 Use=true
@@ -175,7 +175,7 @@ SCRLCK_FILE="$KDE_CONFIGS_DIR/kscreenlockerrc"
 WALLPATH_FILE="$KDE_CONFIGS_DIR/plasmarc"
 
 # Create or overwrite the kscreenlockerrc file
-sudo tee "$SCRLCK_FILE" > /dev/null << EOF
+tee "$SCRLCK_FILE" > /dev/null << EOF
 [Greeter][Wallpaper][org.kde.image][General]
 Image=$WALLPAPER_FILE
 PreviewImage=$WALLPAPER_FILE
@@ -186,7 +186,7 @@ echo "Created $SCRLCK_FILE with the specified content."
 sleep 10
 
 # Create or overwrite the plasmarc file
-sudo tee "$WALLPATH_FILE" > /dev/null << EOF
+tee "$WALLPATH_FILE" > /dev/null << EOF
 [Wallpapers]
 usersWallpapers=$WALLPAPER_FILE
 EOF
@@ -197,30 +197,28 @@ sleep 10
 
 # Define the configuration file path
 APPLETS_CONFIG_FILE="$KDE_CONFIGS_DIR/plasma-org.kde.plasma.desktop-appletsrc"
+
 # Check if the configuration file exists
 if [ -f "$APPLETS_CONFIG_FILE" ]; then
     echo "Configuration file found."
 else
     echo "Configuration file not found. Creating a new one..."
-    touch "$APPLETS_CONFIG_FILE"
-    # Initialize with basic structure
-    echo "[Containments][1][Wallpaper][org.kde.image][General]" >> "$APPLETS_CONFIG_FILE"
+    # Create file with basic structure
+    echo "[Containments][1][Wallpaper][org.kde.image][General]" > "$APPLETS_CONFIG_FILE"
 fi
 
-# Check if the wallpaper section exists in the file
+# Check if the wallpaper section exists
 if grep -q "\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]" "$APPLETS_CONFIG_FILE"; then
-    # Check if the Image line already exists
+    # Update or add Image line
     if grep -q "^Image=" "$APPLETS_CONFIG_FILE"; then
-        # Update the existing Image line
         sed -i "/\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]/,/^$/ s|^Image=.*|Image=$WALLPAPER_FILE|" "$APPLETS_CONFIG_FILE"
         echo "Updated wallpaper path to: $WALLPAPER_FILE"
     else
-        # Append the Image line under the section
         sed -i "/\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]/a Image=$WALLPAPER_FILE" "$APPLETS_CONFIG_FILE"
         echo "Added wallpaper path: $WALLPAPER_FILE"
     fi
 else
-    # Append the entire section if it doesn't exist
+    # Append wallpaper section
     echo -e "\n[Containments][1][Wallpaper][org.kde.image][General]\nImage=$WALLPAPER_FILE" >> "$APPLETS_CONFIG_FILE"
     echo "Created new wallpaper section with path: $WALLPAPER_FILE"
 fi
@@ -229,8 +227,6 @@ sleep 10
 
 # Restart Plasma to apply changes
 echo "Restarting Plasma desktop..."
-#kquitapp5 plasmashell && kstart5 plasmashell &
-
 echo "Configuration updated successfully!"
 
 #############################################################
