@@ -6,25 +6,49 @@ exec </dev/tty
 # Update the system before installing packages
 sudo pacman -Syu
 
-# Install minimal essentials
+clear
+echo "####################################################################"
+echo "#################### Install minimal essentials ####################"
+echo "####################################################################"
+
 sudo pacman -S sddm sddm-kcm plasma-desktop bluedevil kscreen konsole kate kwalletmanager dolphin ark kdegraphics-thumbnailers ffmpegthumbs plasma-pa plasma-nm gwenview plasma-systemmonitor 
 
-# Enable and start Bluetooth service
+sleep 10
+
+clear
+echo "####################################################################"
+echo "################ Enable and start Bluetooth service ################"
+echo "####################################################################"
+ 
 sudo systemctl start bluetooth.service
 sudo systemctl enable bluetooth.service
 
-# Install CPU/GPU packages
+sleep 10
+
+clear
+echo "####################################################################"
+echo "##################### Install CPU/GPU packages #####################"
+echo "####################################################################"
+
 sudo pacman -S amd-ucode
 sudo pacman -S mesa vulkan-radeon libva-mesa-driver mesa-vdpau radeontop
 
-# Install extra packages
+sleep 10
+
+clear
+echo "####################################################################"
+echo "###################### Install extra packages ######################"
+echo "####################################################################"
+
 sudo pacman -S fastfetch mpv krdc freerdp ttf-liberation firefox kde-gtk-config kio-admin git
 
-echo "Installation and service setup complete!"
+sleep 10
 
-#############################################################
-######################### FAST BOOT ###########################
-#############################################################
+
+clear
+echo "####################################################################"
+echo "####################### Setting up Fast Boot #######################"
+echo "####################################################################"
 
 sudo sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
 sudo sed -i 's/GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=hidden/' /etc/default/grub
@@ -35,14 +59,12 @@ sudo grub-mkconfig -o /boot/grub/grub.cfg
 # Comment out all lines containing 'echo' in /boot/grub/grub.cfg
 sudo sed -i '/echo/s/^/#/' /boot/grub/grub.cfg
 
-echo "GRUB configuration updated and all 'echo' lines in /boot/grub/grub.cfg commented out."
-
 sleep 10
 
-#############################################################
-####################### LOGIN SCREEN ##########################
-#############################################################
 clear
+echo "####################################################################"
+echo "###################### Setting up Login Screen #####################"
+echo "####################################################################"
 
 sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
 sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
@@ -51,11 +73,7 @@ sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
 SDDM_CONFIG_DIR="/etc/sddm.conf.d"
 KDE_SETTINGS_FILE="/etc/sddm.conf.d/kde_settings.conf"
 
-# Create the directory if it doesn't exist
-if [[ ! -d "$SDDM_CONFIG_DIR" ]]; then
-    echo "Creating directory $SDDM_CONFIG_DIR"
-    sudo mkdir -p "$SDDM_CONFIG_DIR"
-fi
+sudo bash -c '[[ -d "$SDDM_CONFIG_DIR" ]] || mkdir -p "$SDDM_CONFIG_DIR"'
 
 # Create or overwrite the kde_settings.conf file with the specified content
 sudo tee "$KDE_SETTINGS_FILE" > /dev/null << 'EOF'
@@ -85,19 +103,18 @@ else
     echo "Error: Failed to set Current=sddm-astronaut-theme in $KDE_SETTINGS_FILE"
 fi
 
-#############################################################
-########################## MPV ###############################
-#############################################################
+sleep 10
+
+clear
+echo "####################################################################"
+echo "######################## Setting mpv configs #######################"
+echo "####################################################################"
 
 # Define the directory and file
 MPV_DIR="/etc/mpv"
 MPV_CONFIG_FILE="/etc/mpv/input.conf"
 
-# Create the directory if it doesn't exist
-if [[ ! -d "$MPV_DIR" ]]; then
-    echo "Creating directory $MPV_DIR"
-    sudo mkdir -p "$MPV_DIR"
-fi
+sudo [[ -d "$MPV_DIR" ]] || sudo mkdir -p "$MPV_DIR"
 
 # Create or overwrite the input.conf file with the specified content
 sudo tee "$MPV_CONFIG_FILE" > /dev/null << 'EOF'
@@ -116,12 +133,15 @@ else
     echo "Error: Failed to create $MPV_CONFIG_FILE with the correct content."
 fi
 
-#############################################################
-########################## KEYBOARD ##########################
-#############################################################
+sleep 10
+
+clear
+echo "####################################################################"
+echo "###################### Setting keyboard layout #####################"
+echo "####################################################################"
 
 KDE_CONFIGS_DIR="$HOME/.config"
-sudo bash -c '[[ -d "$KDE_CONFIGS_DIR" ]] || mkdir -p "$KDE_CONFIGS_DIR"'
+sudo [[ -d "$KDE_CONFIGS_DIR" ]] || sudo mkdir -p "$KDE_CONFIGS_DIR"
 
 # Define the file path
 KEYB_FILE="$KDE_CONFIGS_DIR/kxkbrc"
@@ -134,12 +154,13 @@ Use=true
 EOF
 
 echo "Created $KEYB_FILE with the specified content."
+
 sleep 10
 
-#############################################################
-####################### WALLPAPER/SCREENLOCK ##################
-#############################################################
-
+clear
+echo "####################################################################"
+echo "################### Setting Wallpaper / ScreenLock #################"
+echo "####################################################################"
 # Define the wallpaper file path
 WALLPAPER_FILE="/usr/share/sddm/themes/sddm-astronaut-theme/Wallpapers/cyberpunk2077.jpg"
 
@@ -162,6 +183,8 @@ EOF
 
 echo "Created $SCRLCK_FILE with the specified content."
 
+sleep 10
+
 # Create or overwrite the plasmarc file
 sudo tee "$WALLPATH_FILE" > /dev/null << EOF
 [Wallpapers]
@@ -169,6 +192,8 @@ usersWallpapers=$WALLPAPER_FILE
 EOF
 
 echo "Created $WALLPATH_FILE with the specified content."
+
+sleep 10
 
 # Define the configuration file path
 APPLETS_CONFIG_FILE="$KDE_CONFIGS_DIR/plasma-org.kde.plasma.desktop-appletsrc"
@@ -181,8 +206,6 @@ else
     # Initialize with basic structure
     echo "[Containments][1][Wallpaper][org.kde.image][General]" >> "$APPLETS_CONFIG_FILE"
 fi
-
-sleep 10
 
 # Check if the wallpaper section exists in the file
 if grep -q "\[Containments\]\[1\]\[Wallpaper\]\[org.kde.image\]\[General\]" "$APPLETS_CONFIG_FILE"; then
