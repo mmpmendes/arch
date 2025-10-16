@@ -121,13 +121,7 @@ fi
 #############################################################
 
 KDE_CONFIGS_DIR="$HOME/.config"
-# Create the directory if it doesn't exist
-#if [[ ! -d "$KDE_CONFIGS_DIR" ]]; then
-#   echo "Creating directory $KDE_CONFIGS_DIR"
-#   sudo mkdir -p "$KDE_CONFIGS_DIR"
-#fi
-
-sudo [[ -d "$KDE_CONFIGS_DIR" ]] || mkdir -p "f$KDE_CONFIGS_DIR"
+sudo bash -c '[[ -d "$KDE_CONFIGS_DIR" ]] || mkdir -p "$KDE_CONFIGS_DIR"'
 
 # Define the file path
 KEYB_FILE="$KDE_CONFIGS_DIR/kxkbrc"
