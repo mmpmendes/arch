@@ -73,7 +73,7 @@ sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
 SDDM_CONFIG_DIR="/etc/sddm.conf.d"
 KDE_SETTINGS_FILE="/etc/sddm.conf.d/kde_settings.conf"
 
-sudo bash -c '[[ -d "$SDDM_CONFIG_DIR" ]] || mkdir -p "$SDDM_CONFIG_DIR"'
+[[ -d "$SDDM_CONFIG_DIR" ]] || sudo mkdir -p "$SDDM_CONFIG_DIR"
 
 # Create or overwrite the kde_settings.conf file with the specified content
 sudo tee "$KDE_SETTINGS_FILE" > /dev/null << 'EOF'
@@ -114,7 +114,7 @@ echo "####################################################################"
 MPV_DIR="/etc/mpv"
 MPV_CONFIG_FILE="/etc/mpv/input.conf"
 
-sudo [[ -d "$MPV_DIR" ]] || sudo mkdir -p "$MPV_DIR"
+[[ -d "$MPV_DIR" ]] || sudo mkdir -p "$MPV_DIR"
 
 # Create or overwrite the input.conf file with the specified content
 sudo tee "$MPV_CONFIG_FILE" > /dev/null << 'EOF'
@@ -141,7 +141,7 @@ echo "###################### Setting keyboard layout #####################"
 echo "####################################################################"
 
 KDE_CONFIGS_DIR="$HOME/.config"
-sudo [[ -d "$KDE_CONFIGS_DIR" ]] || sudo mkdir -p "$KDE_CONFIGS_DIR"
+[[ -d "$KDE_CONFIGS_DIR" ]] || sudo mkdir -p "$KDE_CONFIGS_DIR"
 
 # Define the file path
 KEYB_FILE="$KDE_CONFIGS_DIR/kxkbrc"
