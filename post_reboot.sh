@@ -37,27 +37,28 @@ sudo sed -i '/echo/s/^/#/' /boot/grub/grub.cfg
 
 echo "GRUB configuration updated and all 'echo' lines in /boot/grub/grub.cfg commented out."
 
-sleep 5
+sleep 10
 
 #############################################################
 ####################### LOGIN SCREEN ##########################
 #############################################################
+clear
 
 sudo git clone -b master --depth 1 https://github.com/macaricol/sddm-astronaut-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
 sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
 
 # Define the directory and file
-CONFIG_DIR="/etc/sddm.conf.d"
-CONFIG_FILE="/etc/sddm.conf.d/kde_settings.conf"
+SDDM_CONFIG_DIR="/etc/sddm.conf.d"
+KDE_SETTINGS_FILE="/etc/sddm.conf.d/kde_settings.conf"
 
 # Create the directory if it doesn't exist
-if [[ ! -d "$CONFIG_DIR" ]]; then
-    echo "Creating directory $CONFIG_DIR"
-    sudo mkdir -p "$CONFIG_DIR"
+if [[ ! -d "$SDDM_CONFIG_DIR" ]]; then
+    echo "Creating directory $SDDM_CONFIG_DIR"
+    sudo mkdir -p "$SDDM_CONFIG_DIR"
 fi
 
 # Create or overwrite the kde_settings.conf file with the specified content
-sudo tee "$CONFIG_FILE" > /dev/null << 'EOF'
+sudo tee "$KDE_SETTINGS_FILE" > /dev/null << 'EOF'
 [Autologin]
 Relogin=false
 Session=
@@ -75,13 +76,13 @@ MaximumUid=60513
 MinimumUid=1000
 EOF
 
-echo "Created $CONFIG_FILE with the specified content."
+echo "Created $KDE_SETTINGS_FILE with the specified content."
 
 # Verify the Current= line in the [Theme] section
-if grep -q "^Current=sddm-astronaut-theme" "$CONFIG_FILE"; then
-    echo "Confirmed: Current=sddm-astronaut-theme is set in $CONFIG_FILE"
+if grep -q "^Current=sddm-astronaut-theme" "$KDE_SETTINGS_FILE"; then
+    echo "Confirmed: Current=sddm-astronaut-theme is set in $KDE_SETTINGS_FILE"
 else
-    echo "Error: Failed to set Current=sddm-astronaut-theme in $CONFIG_FILE"
+    echo "Error: Failed to set Current=sddm-astronaut-theme in $KDE_SETTINGS_FILE"
 fi
 
 #############################################################
@@ -90,7 +91,7 @@ fi
 
 # Define the directory and file
 MPV_DIR="/etc/mpv"
-CONFIG_FILE="/etc/mpv/input.conf"
+MPV_CONFIG_FILE="/etc/mpv/input.conf"
 
 # Create the directory if it doesn't exist
 if [[ ! -d "$MPV_DIR" ]]; then
@@ -99,20 +100,20 @@ if [[ ! -d "$MPV_DIR" ]]; then
 fi
 
 # Create or overwrite the input.conf file with the specified content
-sudo tee "$CONFIG_FILE" > /dev/null << 'EOF'
+sudo tee "$MPV_CONFIG_FILE" > /dev/null << 'EOF'
 WHEEL_UP      seek 10                  # seek 10 seconds forward
 WHEEL_DOWN    seek -10                 # seek 10 seconds backward
 WHEEL_LEFT    add volume -2
 WHEEL_RIGHT   add volume 2
 EOF
 
-echo "Created $CONFIG_FILE with the specified content."
+echo "Created $MPV_CONFIG_FILE with the specified content."
 
 # Verify the file contents
-if grep -q "WHEEL_UP.*seek 10" "$CONFIG_FILE"; then
+if grep -q "WHEEL_UP.*seek 10" "$MPV_CONFIG_FILE"; then
     echo "Confirmed: input.conf contains the correct settings."
 else
-    echo "Error: Failed to create $CONFIG_FILE with the correct content."
+    echo "Error: Failed to create $MPV_CONFIG_FILE with the correct content."
 fi
 
 #############################################################
@@ -121,10 +122,12 @@ fi
 
 KDE_CONFIGS_DIR="$HOME/.config"
 # Create the directory if it doesn't exist
-if [[ ! -d "$KDE_CONFIGS_DIR" ]]; then
-    echo "Creating directory $KDE_CONFIGS_DIR"
-    sudo mkdir -p "$KDE_CONFIGS_DIR"
-fi
+#if [[ ! -d "$KDE_CONFIGS_DIR" ]]; then
+#   echo "Creating directory $KDE_CONFIGS_DIR"
+#   sudo mkdir -p "$KDE_CONFIGS_DIR"
+#fi
+
+sudo [[ -d "$KDE_CONFIGS_DIR" ]] || mkdir -p "f$KDE_CONFIGS_DIR"
 
 # Define the file path
 KEYB_FILE="$KDE_CONFIGS_DIR/kxkbrc"
@@ -137,7 +140,7 @@ Use=true
 EOF
 
 echo "Created $KEYB_FILE with the specified content."
-sleep 5
+sleep 10
 
 #############################################################
 ####################### WALLPAPER/SCREENLOCK ##################
@@ -209,7 +212,7 @@ sleep 10
 
 # Restart Plasma to apply changes
 echo "Restarting Plasma desktop..."
-kquitapp5 plasmashell && kstart5 plasmashell &
+#kquitapp5 plasmashell && kstart5 plasmashell &
 
 echo "Configuration updated successfully!"
 
