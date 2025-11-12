@@ -1,0 +1,285 @@
+# Surface Arch Installation - Visual Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     SURFACE ARCH LINUX                          │
+│                    Installation Process                         │
+└─────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════╗
+║  PHASE 1: BASE INSTALLATION (surface_install.sh)              ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    1. Boot from Arch USB
+           │
+           ├─> Connect WiFi (if needed)
+           │   $ iwctl
+           │
+           ▼
+    2. Download & Run Installer
+           │
+           $ curl -LO https://raw.githubusercontent.com/.../surface_install.sh
+           $ chmod +x surface_install.sh
+           $ ./surface_install.sh
+           │
+           ▼
+    ┌─────────────────────────────────────────┐
+    │  Interactive Drive Selection Menu       │
+    │  ┌───────────────────────────────────┐  │
+    │  │  > /dev/nvme0n1                   │  │
+    │  │    /dev/sda                       │  │
+    │  │    ↑↓ navigate, Enter select     │  │
+    │  └───────────────────────────────────┘  │
+    └─────────────────────────────────────────┘
+           │
+           ├─> Partition Drive (Auto)
+           │   ├─ 512MB EFI
+           │   ├─ 8GB Swap
+           │   └─ Remaining Btrfs Root
+           │
+           ├─> Install Base System
+           │   ├─ Linux Surface Kernel
+           │   └─ Linux Firmware
+           │
+           ├─> Configure System
+           │   ├─ Timezone & Locale
+           │   ├─ Hostname & Users
+           │   ├─ Surface Packages:
+           │   │  • linux-surface kernel
+           │   │  • iptsd (touchscreen)
+           │   │  • Surface DTX daemon
+           │   │  • Surface firmware
+           │   │  • iwd (WiFi)
+           │   │  • libwacom (pen/stylus)
+           │   └─ GRUB bootloader
+           │
+           ├─> Download surface_post.sh
+           │
+           └─> Auto Reboot
+                   │
+                   ▼
+
+╔═══════════════════════════════════════════════════════════════╗
+║  PHASE 2: DESKTOP ENVIRONMENT (surface_post.sh)               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    3. Login to Base System
+           │
+           $ ./surface_post.sh
+           │
+           ▼
+    ┌─────────────────────────────────────────┐
+    │  Desktop Environment Selection          │
+    │  ┌───────────────────────────────────┐  │
+    │  │  > KDE Plasma                     │  │
+    │  │    Hyprland                       │  │
+    │  │    ↑↓ navigate, Enter select     │  │
+    │  └───────────────────────────────────┘  │
+    └─────────────────────────────────────────┘
+           │
+           ├─────────────────┬──────────────────┐
+           │                 │                  │
+           ▼                 ▼                  ▼
+      ┌─────────┐      ┌──────────┐     ┌────────────┐
+      │ COMMON  │      │   KDE    │     │  HYPRLAND  │
+      │PACKAGES │      │ PLASMA   │     │            │
+      └─────────┘      └──────────┘     └────────────┘
+           │                 │                  │
+    ├─ git, curl       ├─ plasma-meta    ├─ hyprland
+    ├─ firefox         ├─ kde-apps       ├─ waybar
+    ├─ pipewire        ├─ sddm           ├─ rofi
+    ├─ fonts           ├─ wayland        ├─ kitty
+    ├─ grim/slurp      ├─ konsole        ├─ thunar
+    ├─ brightnessctl   ├─ dolphin        ├─ swaylock
+    ├─ yay (AUR)       ├─ wacom tablet   ├─ swaync
+    └─ Surface tools   └─ touch gestures └─ 3-finger swipe
+           │                 │                  │
+           └─────────────────┴──────────────────┘
+                             │
+                             ▼
+                        Reboot System
+
+╔═══════════════════════════════════════════════════════════════╗
+║  PHASE 3: CONFIGURATION (Post-Login)                          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    ┌──────────────────┬─────────────────────┐
+    │   KDE PLASMA     │      HYPRLAND       │
+    └──────────────────┴─────────────────────┘
+            │                     │
+            ▼                     ▼
+    ┌──────────────┐      ┌──────────────┐
+    │ SDDM Login   │      │ TTY Login    │
+    │   Screen     │      │   or DM      │
+    └──────────────┘      └──────────────┘
+            │                     │
+            ▼                     ▼
+    ./kde_init.sh        ./hyprland_init.sh
+            │                     │
+    ├─ Dark theme        ├─ Environment vars
+    ├─ Modern clock      ├─ Gestures config
+    ├─ Vertical panel    ├─ Waybar theme
+    ├─ Screen edges      ├─ Rofi config
+    └─ Dolphin settings  ├─ Rotation script
+                         └─ Shortcuts guide
+            │                     │
+            └──────────┬──────────┘
+                       ▼
+              ┌─────────────────┐
+              │  READY TO USE!  │
+              └─────────────────┘
+
+╔═══════════════════════════════════════════════════════════════╗
+║  WHAT'S ENABLED ON SURFACE                                    ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    ✅ WiFi & Bluetooth
+        └─> iwd + NetworkManager backend
+        
+    ✅ Touch Screen (10-point multi-touch)
+        └─> iptsd daemon running
+        
+    ✅ Surface Keyboard / Type Cover
+        └─> Full function key support
+        
+    ✅ Surface Pen / Stylus
+        └─> libwacom + pressure sensitivity
+        
+    ✅ Detachable Keyboard Detection
+        └─> surface-dtx-daemon
+        
+    ✅ Brightness & Media Keys
+        └─> brightnessctl + playerctl
+        
+    ✅ Audio
+        └─> Pipewire + Wireplumber
+        
+    ✅ Power Management
+        └─> KDE PowerDevil or manual controls
+
+╔═══════════════════════════════════════════════════════════════╗
+║  FILE LOCATIONS AFTER INSTALLATION                            ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    📁 Your Home Directory (~)
+       │
+       ├─ surface_post.sh           (Desktop installer)
+       ├─ kde_init.sh               (KDE config - if chosen)
+       ├─ hyprland_init.sh          (Hyprland config - if chosen)
+       └─ hyprland_shortcuts.txt    (Key reference - if Hyprland)
+
+    📁 Config Files
+       │
+       ├─ ~/.config/hypr/           (Hyprland config)
+       │  ├─ hyprland.conf
+       │  └─ env.conf
+       │
+       ├─ ~/.config/waybar/         (Status bar - Hyprland)
+       │  ├─ config
+       │  └─ style.css
+       │
+       ├─ ~/.config/rofi/           (App launcher - Hyprland)
+       │  └─ config.rasi
+       │
+       └─ ~/.config/plasma-*        (KDE settings)
+
+    📁 Scripts
+       │
+       └─ ~/.local/bin/
+          └─ surface-rotate         (Screen rotation script)
+
+╔═══════════════════════════════════════════════════════════════╗
+║  QUICK COMMANDS CHEAT SHEET                                   ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    Update System:
+    $ sudo pacman -Syu
+
+    Install AUR Package:
+    $ yay -S package-name
+
+    Connect WiFi (if GUI fails):
+    $ nmtui
+
+    Restart Touch Screen:
+    $ sudo systemctl restart iptsd
+
+    Check Surface Modules:
+    $ lsmod | grep surface
+
+    Rotate Screen (Hyprland):
+    $ surface-rotate normal
+    $ surface-rotate right
+    $ surface-rotate left
+    $ surface-rotate inverted
+
+    View Logs:
+    $ journalctl -xe
+
+    Check WiFi Status:
+    $ nmcli device wifi list
+
+╔═══════════════════════════════════════════════════════════════╗
+║  KEYBOARD SHORTCUTS (Hyprland)                                ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    Super + Q  → Terminal
+    Super + C  → Close window
+    Super + R  → App launcher
+    Super + E  → File manager
+    Super + F  → Fullscreen
+    Super + V  → Toggle floating
+    Super + 1-9 → Switch workspace
+    Print Screen → Screenshot
+
+    Fn + Brightness Keys → Adjust screen
+    Fn + Volume Keys → Adjust audio
+
+╔═══════════════════════════════════════════════════════════════╗
+║  TYPICAL WORKFLOW                                             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    KDE Plasma:
+    1. Boot → SDDM login
+    2. Desktop appears with panels
+    3. Click launcher for apps
+    4. Use system tray for settings
+    5. Touch gestures work naturally
+
+    Hyprland:
+    1. Boot → TTY or DM login
+    2. Hyprland starts automatically
+    3. Super+R to launch apps
+    4. Windows tile automatically
+    5. 3-finger swipe to change workspace
+    6. Super+1-9 for direct workspace access
+
+╔═══════════════════════════════════════════════════════════════╗
+║  INSTALLATION TIME ESTIMATES                                  ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    Phase 1 (Base Install):     10-15 minutes
+    Phase 2 (Desktop Install):  15-20 minutes
+    Phase 3 (Configuration):    2-5 minutes
+    ─────────────────────────────────────────
+    TOTAL:                      30-40 minutes
+
+    (Times vary based on internet speed and drive performance)
+
+╔═══════════════════════════════════════════════════════════════╗
+║  WHAT MAKES THIS "SURFACE-SPECIFIC"?                          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+    Instead of:              We Install:
+    ───────────────          ─────────────────
+    linux                 →  linux-surface (patched kernel)
+    linux-firmware        →  surface-ipts-firmware
+    Standard touchpad     →  iptsd (Surface touchscreen)
+    Generic drivers       →  Surface-specific modules
+    Basic WiFi            →  iwd (optimized backend)
+    Standard input        →  libwacom-surface (pen support)
+    No detach support     →  surface-dtx-daemon
+    
+    Result: Everything works out of the box! 🎉
+
+```
