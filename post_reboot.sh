@@ -8,8 +8,34 @@ exec </dev/tty
 # ============================================================
 DESKTOP='hyprland'          # options: hyprland, kde
 KBD_LAYOUT='pt'
-GPU_PACKAGES='amd-ucode mesa vulkan-radeon libva-mesa-driver mesa-vdpau radeontop'
 HYPR_TERMINAL='kitty'       # used only when DESKTOP=hyprland
+
+detect_gpu() {
+    sudo pacman -S --noconfirm --needed pciutils
+
+    local gpu
+    gpu=$(lspci | grep -Ei 'VGA|3D|Display')
+
+    if echo "$gpu" | grep -qi 'amd\|radeon'; then
+        echo "Detected AMD GPU"
+        GPU_PACKAGES='mesa vulkan-radeon libva-mesa-driver mesa-vdpau radeontop'
+    elif echo "$gpu" | grep -qi 'nvidia'; then
+        echo "Detected NVIDIA GPU"
+        GPU_PACKAGES='nvidia nvidia-utils nvidia-settings'
+    elif echo "$gpu" | grep -qi 'intel'; then
+        echo "Detected Intel GPU"
+        GPU_PACKAGES='mesa vulkan-intel intel-media-driver'
+    else
+        echo "Warning: Could not detect GPU vendor. No GPU drivers will be installed."
+        GPU_PACKAGES=''
+    fi
+
+    if grep -q 'AuthenticAMD' /proc/cpuinfo; then
+        GPU_PACKAGES="amd-ucode $GPU_PACKAGES"
+    elif grep -q 'GenuineIntel' /proc/cpuinfo; then
+        GPU_PACKAGES="intel-ucode $GPU_PACKAGES"
+    fi
+}
 
 # Update the system before installing packages
 sudo pacman -Syu
@@ -44,7 +70,8 @@ echo "####################################################################"
 echo "##################### Install CPU/GPU packages #####################"
 echo "####################################################################"
 
-sudo pacman -S --noconfirm $GPU_PACKAGES
+detect_gpu
+[ -n "$GPU_PACKAGES" ] && sudo pacman -S --noconfirm $GPU_PACKAGES
 
 clear
 echo "####################################################################"

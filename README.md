@@ -53,6 +53,6 @@ Edit the `CONFIGURATION` block at the top of each script before running:
 ## Warnings
 
 - **Data Loss**: Running `install.sh` will format the selected drive.
-- **AMD GPU**: `post_reboot.sh` installs AMD drivers by default (`vulkan-radeon`, `mesa`, etc.). Edit `GPU_PACKAGES` for NVIDIA or Intel hardware.
+- **GPU Drivers**: `post_reboot.sh` auto-detects your GPU (AMD, NVIDIA, Intel) and installs the appropriate drivers.
 - **UEFI Required**: The bootloader is installed for UEFI systems only (`x86_64-efi` target).
 - **Internet Required**: Both scripts download packages. An active connection is required throughout.

@@ -41,8 +41,9 @@ The following are intentionally hardcoded for the target environment and should 
 - Timezone: `Europe/Lisbon`
 - Locale: `pt_PT.UTF-8` (primary), `en_US.UTF-8` (fallback)
 - Console keymap: `pt-latin9`
-- CPU microcode: `amd-ucode`
-- GPU drivers: `mesa`, `vulkan-radeon`, `libva-mesa-driver`, `mesa-vdpau`
+
+### GPU and CPU microcode detection
+`post_reboot.sh` runs `detect_gpu()` at install time, which installs `pciutils` (via `--needed`), reads `lspci` output, and sets `$GPU_PACKAGES` accordingly — AMD gets `mesa`/`vulkan-radeon`, NVIDIA gets `nvidia`/`nvidia-utils`, Intel gets `mesa`/`vulkan-intel`. CPU microcode (`amd-ucode` or `intel-ucode`) is detected separately via `/proc/cpuinfo` and prepended to `$GPU_PACKAGES`. If no GPU is recognised, the install step is skipped with a warning.
 
 ### Desktop selection via `DESKTOP` variable
 `post_reboot.sh` branches on `DESKTOP='hyprland'` (default) or `DESKTOP='kde'` at the top of the CONFIGURATION block. The two paths install entirely different package sets and write different config files. Common to both paths: SDDM display manager, AMD GPU drivers, Bluetooth, mpv, and the fast-boot GRUB settings.
