@@ -1,13 +1,17 @@
 #!/bin/bash
 
-#config variables
-#DRIVE='/dev/sda'
+# ============================================================
+# CONFIGURATION — edit these values before running the script
+# ============================================================
+#DRIVE='/dev/sda'          # optional: pre-select drive to skip the menu
 HOSTNAME=''
 ROOT_PASSWORD=''
 USER_NAME=''
 USER_PASSWORD=''
 TIMEZONE='Europe/Lisbon'
 KEYMAP='pt-latin9'
+LOCALE='pt_PT.UTF-8'
+LOCALE_MESSAGES='en_US.UTF-8'
 
 # Ensure stdin is bound to the terminal
 exec </dev/tty
@@ -171,6 +175,8 @@ setup() {
 
     echo '##### Chrooting into installed system #####'
     cp $0 /mnt/setup.sh
+    cp "$(dirname "$0")/post_reboot.sh" /mnt/post_reboot.sh 2>/dev/null || \
+        echo "Warning: post_reboot.sh not found next to install.sh."
     arch-chroot /mnt ./setup.sh chroot
 
     reboot
@@ -218,12 +224,6 @@ configure() {
         read -p '' USER_PASSWORD
         stty echo
     fi
-    if [ -z "$USER_PASSWORD" ]; then
-        echo "Enter the password for user $USER_NAME"
-        stty -echo
-        read -p '' USER_PASSWORD
-        stty echo
-    fi
     echo '##### Creating initial user #####'
     create_user "$USER_NAME" "$USER_PASSWORD"
 
@@ -233,7 +233,11 @@ configure() {
     echo '##### Installing bootloader #####'
     install_grub
 
-    rm /setup.sh
+    if [ -f /post_reboot.sh ]; then
+        cp /post_reboot.sh "/home/$USER_NAME/post_reboot.sh"
+        chmod +x "/home/$USER_NAME/post_reboot.sh"
+    fi
+    rm -f /setup.sh /post_reboot.sh
 }
 
 partition_drive() {
@@ -307,11 +311,11 @@ set_timezone() {
 }
 
 set_locale() {
-    sed -i 's/#en_US\.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
-    sed -i 's/#pt_PT\.UTF-8 UTF-8/pt_PT.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i "s/#${LOCALE_MESSAGES} UTF-8/${LOCALE_MESSAGES} UTF-8/" /etc/locale.gen
+    sed -i "s/#${LOCALE} UTF-8/${LOCALE} UTF-8/" /etc/locale.gen
 
-    echo 'LANG="pt_PT.UTF-8"' >> /etc/locale.conf
-    echo 'LC_MESSAGES="en_US.UTF-8"' >> /etc/locale.conf
+    echo "LANG=\"${LOCALE}\"" >> /etc/locale.conf
+    echo "LC_MESSAGES=\"${LOCALE_MESSAGES}\"" >> /etc/locale.conf
     locale-gen
 }
 
