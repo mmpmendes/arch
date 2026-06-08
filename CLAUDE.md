@@ -44,8 +44,14 @@ The following are intentionally hardcoded for the target environment and should 
 - CPU microcode: `amd-ucode`
 - GPU drivers: `mesa`, `vulkan-radeon`, `libva-mesa-driver`, `mesa-vdpau`
 
-### SDDM theme installation
-`post_reboot.sh` clones `sddm-astronaut-theme` from GitHub into `/usr/share/sddm/themes/` and writes the theme config to `/etc/sddm.conf`. The wallpaper path is derived from within that cloned directory — if the theme repo changes its internal structure, the wallpaper path will break.
+### Desktop selection via `DESKTOP` variable
+`post_reboot.sh` branches on `DESKTOP='hyprland'` (default) or `DESKTOP='kde'` at the top of the CONFIGURATION block. The two paths install entirely different package sets and write different config files. Common to both paths: SDDM display manager, AMD GPU drivers, Bluetooth, mpv, and the fast-boot GRUB settings.
+
+### SDDM theme installation (KDE path only)
+When `DESKTOP='kde'`, `post_reboot.sh` clones `sddm-astronaut-theme` from GitHub into `/usr/share/sddm/themes/`. The wallpaper path is derived from within that cloned directory — if the theme repo changes its internal structure, the wallpaper path will break.
+
+### Hyprland config generation
+When `DESKTOP='hyprland'`, `post_reboot.sh` writes `~/.config/hypr/hyprland.conf`, `hyprpaper.conf`, and `hyprlock.conf` using heredocs. The heredoc for `hyprland.conf` uses an unquoted `EOF` delimiter so that `$KBD_LAYOUT` and `$HYPR_TERMINAL` expand; Hyprland's own `$variable` syntax is escaped with `\$` to survive the bash expansion.
 
 ## `test_sddm_theme.sh`
 
